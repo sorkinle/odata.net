@@ -8,12 +8,14 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
+using SpecGate.Annotations;
 
 namespace Microsoft.Spatial
 {
     /// <summary>
     ///   Coordinate System Reference
     /// </summary>
+    [SpecEvent("CoordinateSystem")]
     public class CoordinateSystem
     {
         /// <summary>
@@ -65,6 +67,7 @@ namespace Microsoft.Spatial
         /// <summary>
         ///   The shapes of the spaces measured by coordinate systems.
         /// </summary>
+        [SpecEvent("Topology")]
         internal enum Topology
         {
             /// <summary>
@@ -81,10 +84,12 @@ namespace Microsoft.Spatial
         /// <summary>Gets the coordinate system ID according to the EPSG, or NULL if this is not an EPSG coordinate system.</summary>
         /// <returns>The coordinate system ID according to the EPSG.</returns>
         [SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Epsg", Justification = "This is not hungarian notation, but the widley accepted abreviation")]
+        [SpecEvent]
         public int? EpsgId { get; internal set; }
 
         /// <summary>Gets the coordinate system Id, no matter what scheme is used.</summary>
         /// <returns>The coordinate system Id.</returns>
+        [SpecEvent]
         public string Id
         {
             get { return EpsgId.Value.ToString(CultureInfo.InvariantCulture); }
@@ -92,13 +97,15 @@ namespace Microsoft.Spatial
 
         /// <summary>Gets the Name of the Reference.</summary>
         /// <returns>The Name of the Reference.</returns>
+        [SpecEvent]
         public string Name { get; internal set; }
 
         /// <summary>Gets or creates a Geography coordinate system with the ID, or the default if null is given.</summary>
         /// <returns>The coordinate system.</returns>
         /// <param name="epsgId">The coordinate system id, according to the EPSG. Null indicates the default should be returned.</param>
         [SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "epsg", Justification = "This is not hungarian notation, but the widley accepted abreviation")]
-        public static CoordinateSystem Geography(int? epsgId)
+        [SpecOperation("geography", Spec = "spatial.coordinate_system")]
+        public static CoordinateSystem Geography([SpecInput("epsg_id")] int? epsgId)
         {
             return epsgId.HasValue ? GetOrCreate(epsgId.Value, Topology.Geography) : DefaultGeography;
         }
@@ -107,13 +114,15 @@ namespace Microsoft.Spatial
         /// <returns>The coordinate system.</returns>
         /// <param name="epsgId">The coordinate system id, according to the EPSG. Null indicates the default should be returned.</param>
         [SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "epsg", Justification = "This is not hungarian notation, but the widley accepted abreviation")]
-        public static CoordinateSystem Geometry(int? epsgId)
+        [SpecOperation("geometry", Spec = "spatial.coordinate_system")]
+        public static CoordinateSystem Geometry([SpecInput("epsg_id")] int? epsgId)
         {
             return epsgId.HasValue ? GetOrCreate(epsgId.Value, Topology.Geometry) : DefaultGeometry;
         }
 
         /// <summary>Displays the coordinate system for debugging.</summary>
         /// <returns>The coordinate system, for debugging.</returns>
+        [SpecOperation("to_string", Spec = "spatial.coordinate_system")]
         public override string ToString()
         {
             return FormattableString.Invariant($"{this.topology}CoordinateSystem(EpsgId={this.EpsgId})");
@@ -122,6 +131,7 @@ namespace Microsoft.Spatial
         /// <summary>Displays a string that can be used with extended WKT.</summary>
         /// <returns>String representation in the form of SRID=#;</returns>
         [SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Wkt", Justification = "This is not hungarian notation, but the widley accepted abreviation")]
+        [SpecOperation("to_wkt_id", Spec = "spatial.coordinate_system")]
         public string ToWktId()
         {
             return WellKnownTextConstants.WktSrid + WellKnownTextConstants.WktEquals + this.EpsgId + WellKnownTextConstants.WktSemiColon;
@@ -155,6 +165,7 @@ namespace Microsoft.Spatial
 
         /// <summary>Returns a hash code for this instance.</summary>
         /// <returns>A hash code for this instance, suitable for use in hashing algorithms and data structures like a hash table.</returns>
+        [SpecOperation("get_hash_code", Spec = "spatial.coordinate_system")]
         public override int GetHashCode()
         {
             unchecked
