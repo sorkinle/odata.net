@@ -71,19 +71,19 @@ namespace Microsoft.Spatial.Tests
         [Fact]
         public void ToWktImplementation()
         {
-            Assert.Equal("SRID=1;", CoordinateSystem.Geography(1).ToWktId());
+            Assert.Equal("SRID=1;", CoordinateSystemCaptureSetup.Geography(1).ToWktId());
         }
 
         [Fact]
         public void ToStringImplementation()
         {
-            Assert.Equal("GeographyCoordinateSystem(EpsgId=1)", CoordinateSystem.Geography(1).ToString());
+            Assert.Equal("GeographyCoordinateSystem(EpsgId=1)", CoordinateSystemCaptureSetup.Geography(1).ToString());
         }
 
         [Fact]
         public void GetHashCodeImplementation()
         {
-            Assert.Equal(1234, CoordinateSystem.Geography(1234).GetHashCode());
+            Assert.Equal(1234, CoordinateSystemCaptureSetup.Geography(1234).GetHashCode());
         }
 
         private static CoordinateSystem Coords(int epsgId = 99, string name = "usual name", CoordinateSystem.Topology topology = Geography)
