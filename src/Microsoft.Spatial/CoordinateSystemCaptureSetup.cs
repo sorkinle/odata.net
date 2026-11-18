@@ -17,7 +17,6 @@ namespace Microsoft.Spatial
     {
         [SpecSetup("to_string", Spec = "spatial.coordinate_system")]
         [SpecSetup("to_wkt_id", Spec = "spatial.coordinate_system")]
-        [SpecSetup("get_hash_code", Spec = "spatial.coordinate_system")]
         internal static CoordinateSystem Geography([SpecInput("epsg_id")] int? epsgId)
         {
             return CoordinateSystem.Geography(epsgId);

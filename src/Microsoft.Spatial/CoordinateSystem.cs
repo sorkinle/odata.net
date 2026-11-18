@@ -165,7 +165,6 @@ namespace Microsoft.Spatial
 
         /// <summary>Returns a hash code for this instance.</summary>
         /// <returns>A hash code for this instance, suitable for use in hashing algorithms and data structures like a hash table.</returns>
-        [SpecOperation("get_hash_code", Spec = "spatial.coordinate_system")]
         public override int GetHashCode()
         {
             unchecked

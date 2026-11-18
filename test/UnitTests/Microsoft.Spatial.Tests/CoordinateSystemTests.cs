@@ -83,7 +83,7 @@ namespace Microsoft.Spatial.Tests
         [Fact]
         public void GetHashCodeImplementation()
         {
-            Assert.Equal(1234, CoordinateSystemCaptureSetup.Geography(1234).GetHashCode());
+            Assert.Equal(1234, CoordinateSystem.Geography(1234).GetHashCode());
         }
 
         private static CoordinateSystem Coords(int epsgId = 99, string name = "usual name", CoordinateSystem.Topology topology = Geography)
