@@ -1,0 +1,11 @@
+components:
+  spatial.coordinate_system:
+    implementations:
+      csharp:
+        language: csharp
+        sources: src/Microsoft.Spatial
+        tests:
+          projects:
+            - specgate-capture/Microsoft.Spatial.CoordinateSystem.Capture.csproj
+        csharp:
+          framework: net8.0
