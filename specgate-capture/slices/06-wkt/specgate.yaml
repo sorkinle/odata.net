@@ -1,0 +1,17 @@
+components:
+  spatial.wkt:
+    implementations:
+      csharp:
+        language: csharp
+        sources: ../../../src/Microsoft.Spatial
+        tests:
+          projects:
+            - ../../Microsoft.Spatial.Wkt.Capture.csproj
+        csharp:
+          framework: net8.0
+      rust:
+        language: rust
+        sources: ../../../../odata-rs/crates/odata-spatial-wkt
+        tests:
+          projects:
+            - ../../../../odata-rs/crates/odata-spatial-wkt/Cargo.toml
