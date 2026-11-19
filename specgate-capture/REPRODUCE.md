@@ -51,6 +51,7 @@ the current branch heads, to reproduce an earlier slice.
 
 | Slice | Folder | odata-rs commit | odata.net fork commit | SpecGate commit |
 | --- | --- | --- | --- | --- |
+| Shape object model | `slices/04-shape-object-model` | `65b45856a410d24df09efa516067801edbc66c71` ([PR #86](https://github.com/OData/odata-rs/pull/86)) | `271e211040928cf7c6f4d67974012fcef7e306b0` | `4a904c276e24177c84cf4fb7182c93e811137f9d` |
 
 Each slice's source branch adds its own row. For a new slice, write
 "Pending" until its changes are committed, then
@@ -216,6 +217,7 @@ with the expected result for the slice:
 
 | Slice | Expected `compare` result |
 | --- | --- |
+| Shape object model | `equivalent: false`. 52 mismatch lines: 34 CRS result fields, 16 nested CRS input fields, and two observations of the latitude-91 result-versus-error difference. |
 
 A new validation error or a different set of mismatches is a new finding.
 
