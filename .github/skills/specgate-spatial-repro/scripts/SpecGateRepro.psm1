@@ -249,13 +249,167 @@ function New-OutputDirectory {
         [Parameter(Mandatory)] [string] $Path,
         [switch] $Force
     )
-    if ((Test-Path $Path) -and (Get-ChildItem $Path -Force | Select-Object -First 1)) {
+    if ((Test-Path -LiteralPath $Path) -and -not (Test-Path -LiteralPath $Path -PathType Container)) {
+        throw "Output path $Path is not a directory."
+    }
+    if ((Test-Path -LiteralPath $Path) -and (Get-ChildItem -LiteralPath $Path -Force | Select-Object -First 1)) {
         if (-not $Force) { throw "Output folder $Path is not empty. Use -Force or choose another -OutDir." }
-        Remove-Item $Path -Recurse -Force
+        $runName = "run-$(Get-Date -Format 'yyyyMMdd-HHmmss')-$([guid]::NewGuid().ToString('N'))"
+        $Path = Join-Path $Path $runName
     }
     New-Item -ItemType Directory -Path $Path -Force | Out-Null
-    (Resolve-Path $Path).Path
+    $resolvedPath = (Resolve-Path -LiteralPath $Path).Path
+    Write-Host "Output folder: $resolvedPath"
+    return $resolvedPath
+}
+
+function Invoke-WithCargoPatch {
+    param(
+        [Parameter(Mandatory)] $Layout,
+        [Parameter(Mandatory)] $Pinned,
+        [Parameter(Mandatory)] [string] $OutDir,
+        [Parameter(Mandatory)] [scriptblock] $Action
+    )
+
+    $cargoDir = Join-Path $Layout.Parent '.cargo'
+    $cargoConfig = Join-Path $cargoDir 'config.toml'
+    $legacyConfig = Join-Path $cargoDir 'config'
+    foreach ($path in @($cargoConfig, $legacyConfig)) {
+        if (Test-Path -LiteralPath $path) {
+            throw "$path already exists. This script does not replace or merge Cargo configuration."
+        }
+    }
+
+    $lockFile = Join-Path $Layout.OdataRs 'Cargo.lock'
+    $lockBackup = Join-Path $OutDir 'Cargo.lock.before-replay'
+    $lockAfter = Join-Path $OutDir 'Cargo.lock.after-replay'
+    [IO.File]::Copy($lockFile, $lockBackup, $false)
+    $originalLock = [IO.File]::ReadAllBytes($lockBackup)
+    $originalLockHash = [Convert]::ToHexString([Security.Cryptography.SHA256]::HashData($originalLock))
+
+    $patchedCrate = (Join-Path $Layout.SpecGateRoot 'rust\crates\specgate') -replace '\\', '/'
+    $patch = @"
+# Temporary patch written by Invoke-SliceReplay.ps1. It is removed after replay.
+[patch."$($Pinned.GitUrl)"]
+specgate = { path = "$patchedCrate" }
+"@
+    $patchBytes = [Text.UTF8Encoding]::new($false).GetBytes($patch)
+    $patchHash = [Convert]::ToHexString([Security.Cryptography.SHA256]::HashData($patchBytes))
+    $createdCargoDir = -not (Test-Path -LiteralPath $cargoDir)
+    $createdConfig = $false
+    $replayStarted = $false
+    $actionError = $null
+    $cleanupErrors = [Collections.Generic.List[string]]::new()
+
+    try {
+        [void] [IO.Directory]::CreateDirectory($cargoDir)
+        $configStream = [IO.File]::Open($cargoConfig, [IO.FileMode]::CreateNew,
+            [IO.FileAccess]::Write, [IO.FileShare]::None)
+        $createdConfig = $true
+        try {
+            $configStream.Write($patchBytes, 0, $patchBytes.Length)
+        }
+        finally {
+            $configStream.Dispose()
+        }
+        if (Test-Path -LiteralPath $legacyConfig) {
+            throw "$legacyConfig appeared before replay. This script does not replace or merge Cargo configuration."
+        }
+        $replayStarted = $true
+        & $Action
+    }
+    catch {
+        $actionError = $_
+    }
+    finally {
+        if ($createdConfig) {
+            try {
+                if (-not (Test-Path -LiteralPath $cargoConfig -PathType Leaf)) {
+                    throw "The temporary Cargo patch is missing or is no longer a file: $cargoConfig."
+                }
+                if ((Get-FileHash -LiteralPath $cargoConfig).Hash -ne $patchHash) {
+                    throw "The temporary Cargo patch changed during replay and was preserved: $cargoConfig."
+                }
+                Remove-Item -LiteralPath $cargoConfig
+            }
+            catch {
+                $cleanupErrors.Add($_.Exception.Message)
+            }
+        }
+        if ($createdCargoDir -and (Test-Path -LiteralPath $cargoDir)) {
+            try {
+                if (Get-ChildItem -LiteralPath $cargoDir -Force | Select-Object -First 1) {
+                    Write-Warning "Leaving $cargoDir because it contains other files."
+                }
+                else {
+                    [IO.Directory]::Delete($cargoDir)
+                }
+            }
+            catch {
+                $cleanupErrors.Add("Could not remove the temporary Cargo directory ${cargoDir}: $($_.Exception.Message)")
+            }
+        }
+
+        $lockRestored = $false
+        try {
+            # A post-replay lockfile can contain concurrent edits. Save it before restoring
+            # the original, and hold the file exclusively through both operations.
+            $lockStream = [IO.File]::Open($lockFile, [IO.FileMode]::Open,
+                [IO.FileAccess]::ReadWrite, [IO.FileShare]::None)
+            try {
+                $currentLockHash = [Convert]::ToHexString([Security.Cryptography.SHA256]::HashData($lockStream))
+                if ($currentLockHash -ne $originalLockHash) {
+                    if (-not $replayStarted) {
+                        throw 'Cargo.lock changed before replay started; the current file was not changed.'
+                    }
+                    $afterStream = [IO.File]::Open($lockAfter, [IO.FileMode]::CreateNew,
+                        [IO.FileAccess]::Write, [IO.FileShare]::None)
+                    try {
+                        $lockStream.Position = 0
+                        $lockStream.CopyTo($afterStream)
+                    }
+                    finally {
+                        $afterStream.Dispose()
+                    }
+                    Write-Host "Saved the lockfile observed after replay: $lockAfter"
+                    $lockStream.Position = 0
+                    $lockStream.SetLength(0)
+                    $lockStream.Write($originalLock, 0, $originalLock.Length)
+                    $lockStream.Flush()
+                }
+                $lockStream.Position = 0
+                $restoredHash = [Convert]::ToHexString([Security.Cryptography.SHA256]::HashData($lockStream))
+                if ($restoredHash -ne $originalLockHash) {
+                    throw 'Restored Cargo.lock does not match the original.'
+                }
+                $lockRestored = $true
+            }
+            finally {
+                $lockStream.Dispose()
+            }
+        }
+        catch {
+            $cleanupErrors.Add("Cargo.lock cleanup failed: $($_.Exception.Message) Original backup: $lockBackup.")
+        }
+
+        if ($lockRestored) {
+            try {
+                Remove-Item -LiteralPath $lockBackup
+            }
+            catch {
+                $cleanupErrors.Add("Could not remove the lockfile backup ${lockBackup}: $($_.Exception.Message)")
+            }
+        }
+        if ($cleanupErrors.Count -gt 0) {
+            $message = "Cargo cleanup failed:`n- $($cleanupErrors -join "`n- ")"
+            if ($actionError) { $message = "Replay failed: $($actionError.Exception.Message)`n$message" }
+            throw $message
+        }
+    }
+    if ($actionError) { throw $actionError }
+    Write-Host 'Removed the temporary Cargo patch and restored odata-rs\Cargo.lock.'
 }
 
 Export-ModuleMember -Function Get-ReproLayout, Assert-SpecGateInstalled, Get-AnnotationsVersion,
-    Get-PinnedSpecGateDependency, Get-SliceInfo, Invoke-Logged, Set-AnnotationsFeed, New-OutputDirectory
+    Get-PinnedSpecGateDependency, Get-SliceInfo, Invoke-Logged, Set-AnnotationsFeed, New-OutputDirectory,
+    Invoke-WithCargoPatch

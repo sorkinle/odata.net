@@ -35,6 +35,10 @@ param(
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
+trap {
+    Write-Error -ErrorRecord $_ -ErrorAction Continue
+    exit 2
+}
 Import-Module (Join-Path $PSScriptRoot 'SpecGateRepro.psm1') -Force
 
 $layout = Get-ReproLayout -SpecGateRoot $SpecGateRoot -FeedPath $FeedPath

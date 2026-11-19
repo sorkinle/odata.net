@@ -16,7 +16,8 @@ The pinned SpecGate CLI rejects a Git-sourced specgate dependency during
 replay. For the replay only, this script adds a temporary
 <parent>\.cargo\config.toml that patches the odata-rs specgate dependency to
 the same commit in the local SpecGate clone. It removes the patch and restores
-odata-rs\Cargo.lock afterward, also when replay fails.
+odata-rs\Cargo.lock afterward, also when replay fails. If the lockfile changes
+during replay, its contents are saved in the output folder before restoration.
 
 Exit codes: 0 when compare reports equivalent, 1 when compare reports
 differences, 2 when a step fails before compare finishes.
@@ -32,6 +33,10 @@ param(
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
+trap {
+    Write-Error -ErrorRecord $_ -ErrorAction Continue
+    exit 2
+}
 Import-Module (Join-Path $PSScriptRoot 'SpecGateRepro.psm1') -Force
 
 $layout = Get-ReproLayout -SpecGateRoot $SpecGateRoot
@@ -54,36 +59,9 @@ $work = $sliceInfo.Dir
 $code = Invoke-Logged $exe @('validate', 'bundle', 'reference') $work (Join-Path $OutDir 'validate-bundle.log')
 if ($code -ne 0) { Write-Host 'Bundle validation failed.'; exit 2 }
 
-$cargoDir = Join-Path $layout.Parent '.cargo'
-$cargoConfig = Join-Path $cargoDir 'config.toml'
-if (Test-Path $cargoConfig) {
-    throw "$cargoConfig already exists. Move it away first; this script does not merge Cargo configuration."
-}
-$lockFile = Join-Path $layout.OdataRs 'Cargo.lock'
-$lockBackup = Join-Path $OutDir 'Cargo.lock.before-replay'
-Copy-Item $lockFile $lockBackup
-$lockHash = (Get-FileHash $lockFile).Hash
-$createdCargoDir = -not (Test-Path $cargoDir)
-
-$patchedCrate = (Join-Path $layout.SpecGateRoot 'rust\crates\specgate') -replace '\\', '/'
-$patch = @"
-# Temporary patch written by Invoke-SliceReplay.ps1. It is removed after replay.
-[patch."$($pinned.GitUrl)"]
-specgate = { path = '$patchedCrate' }
-"@
-
-try {
-    New-Item -ItemType Directory -Path $cargoDir -Force | Out-Null
-    Set-Content -Path $cargoConfig -Value $patch -Encoding utf8
+$code = Invoke-WithCargoPatch -Layout $layout -Pinned $pinned -OutDir $OutDir -Action {
     $code = Invoke-Logged $exe @('replay', 'reference', '--binding', 'specgate.yaml', '--impl', 'rust', '--out', $candidate, '--force') $work (Join-Path $OutDir 'replay.log')
-}
-finally {
-    Remove-Item $cargoConfig -Force -ErrorAction SilentlyContinue
-    if ($createdCargoDir) { Remove-Item $cargoDir -Recurse -Force -ErrorAction SilentlyContinue }
-    Copy-Item $lockBackup $lockFile -Force
-    if ((Get-FileHash $lockFile).Hash -ne $lockHash) { throw "Could not restore $lockFile." }
-    Remove-Item $lockBackup -Force
-    Write-Host 'Removed the temporary Cargo patch and restored odata-rs\Cargo.lock.'
+    return $code
 }
 if ($code -ne 0) { Write-Host 'Replay failed.'; exit 2 }
 

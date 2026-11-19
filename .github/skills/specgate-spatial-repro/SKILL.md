@@ -15,9 +15,9 @@ not prove parity. Report the observed results. Do not claim parity.
 
 ## Rules
 
-- Do not edit tracked files in any clone. Check out a branch or PR only in a
-  clean clone. All output goes to
-  `<parent>\specgate-out\<slice>\`, outside the clones.
+- Check out a branch or PR only in a clean clone. Do not retain changes to
+  tracked files. All output goes to `<parent>\specgate-out\<slice>\`, outside
+  the clones.
 - Do not edit the saved reference in `specgate-capture/slices/<slice>/reference/`.
 - Do not change Rust or C# code to make results match. A difference from the
   expected result is a finding. Report it.
@@ -133,9 +133,18 @@ The script selects the published reference for the PR URL. It validates the
 saved bundle, replays it against odata-rs,
 validates the candidate trace against the registry, and compares the traces.
 For the replay only, it adds a temporary `<parent>\.cargo\config.toml` patch,
-because the pinned CLI rejects the Git-sourced `specgate` dependency. It then
-removes the patch and restores `odata-rs\Cargo.lock`. It stops if a
-`<parent>\.cargo\config.toml` already exists.
+because the pinned CLI rejects the Git-sourced `specgate` dependency. It stops
+if `<parent>\.cargo\config.toml` or `<parent>\.cargo\config` exists. It removes
+only its own unchanged patch and restores `odata-rs\Cargo.lock`, even if replay
+fails. If the lockfile changed during replay, its post-replay contents are
+saved as `Cargo.lock.after-replay` in the output folder. Report any cleanup
+error and the paths it gives; do not delete or overwrite those files.
+Do not edit the lockfile or run other Cargo commands in that checkout during
+replay. Inspect the saved post-replay file for any concurrent changes.
+
+If the output folder is not empty, choose another `-OutDir`. Alternatively,
+use `-Force` to create a new run folder inside it. The script prints the actual
+output path. This rule also applies to discovery and capture.
 
 Exit code `1` means that compare found differences. That is the expected
 result for slices with known differences. Exit code `2` means that a step

@@ -37,7 +37,8 @@ the test gate. It then compares the results with the expected results below.
 
 The scripts need PowerShell 7 and the prerequisites below. You can also run
 them without Copilot. See the skill's `SKILL.md` for the commands. They write
-all results to `<parent>\specgate-out\` and do not change tracked files.
+all results to `<parent>\specgate-out\`. They restore the original lockfile
+after replay and preserve any post-replay changes in the output folder.
 The skill selects the published binding and reference for the PR from this
 branch. Reviewers do not need a separate workspace or a slice folder.
 
@@ -63,7 +64,7 @@ capture manifests. The odata-rs test dependency uses the same commit.
 - Git.
 - Read access to [`OData/odata-rs`](https://github.com/OData/odata-rs). The
   repository is private. The fork `sorkinle/odata.net` and SpecGate are public.
-- PowerShell 7.2 or later, only for the Copilot skill scripts.
+- PowerShell 7.2 or later, for the reproduction scripts and manual replay.
 - A Rust toolchain with `cargo`. odata-rs selects its own toolchain through
   `rust-toolchain.toml`. SpecGate needs Rust 1.93 or later.
 - [`just`](https://github.com/casey/just), to build the SpecGate C# tools.
@@ -138,45 +139,75 @@ git clone --branch spike/specgate-spatial-coordinated https://github.com/sorkinl
 git clone https://github.com/OData/odata-rs odata-rs
 ```
 
-In `odata-rs`, check out the slice PR branch. In both clones, check out the
-commits from the version table to reproduce a specific slice.
+In `odata-rs`, check out the slice PR branch or its commit from the version
+table. Keep `odata.net` on the annotated branch so this guide and the helper
+remain available. The replay steps check its binding and reference against
+the evidence commit in the version table.
 
 ## 3. Replay the saved C# reference
 
-The odata-rs test dependency gets `specgate` from Git. The pinned SpecGate CLI
-accepts only path or registry sources for that dependency during replay. Until
-this is fixed, add a temporary Cargo patch in the parent folder. It points the
-Git dependency at the same commit in your SpecGate clone:
+The pinned SpecGate CLI requires a temporary Cargo path patch for the
+Git-sourced dependency. The helper below creates the patch, runs the SpecGate
+commands, and cleans up even if a command fails. It refuses to replace an
+existing `<parent>\.cargo\config.toml` or `<parent>\.cargo\config`.
+Do not edit `odata-rs\Cargo.lock` or run other Cargo commands in that checkout
+until replay finishes.
+
+Set the four values below for your checkout and PR. Use the fork evidence
+commit from the version table. Run the block in
+PowerShell 7. The helper selects the PR's published reference and runs its
+SpecGate commands from the reference folder.
 
 ```powershell
-New-Item -ItemType Directory <parent>\.cargo -Force
-@"
-[patch."https://github.com/schgoo/specgate"]
-specgate = { path = '<specgate>\rust\crates\specgate' }
-"@ | Set-Content <parent>\.cargo\config.toml
+$parent = 'C:\path\to\parent'
+$specgateRoot = 'C:\path\to\specgate'
+$pullRequest = 'https://github.com/OData/odata-rs/pull/80'
+$forkEvidence = 'e51470cce1805f569011be375b425b3b5e3bc82d'
+
+$module = Join-Path $parent 'odata.net\.github\skills\specgate-spatial-repro\scripts\SpecGateRepro.psm1'
+Import-Module $module -Force
+$layout = Get-ReproLayout -SpecGateRoot $specgateRoot
+$pinned = Get-PinnedSpecGateDependency -Layout $layout
+$head = git -C $specgateRoot rev-parse HEAD
+if ($LASTEXITCODE -ne 0 -or $head -ne $pinned.Rev) {
+    throw "SpecGate must be checked out at $($pinned.Rev)."
+}
+$slice = Get-SliceInfo -Layout $layout -PullRequest $pullRequest
+git -C $layout.ForkRoot diff --quiet $forkEvidence HEAD -- "specgate-capture\slices\$($slice.Name)"
+if ($LASTEXITCODE -ne 0) {
+    throw 'The binding or reference changed, or the fork evidence commit is unavailable.'
+}
+$out = New-OutputDirectory -Path (Join-Path $parent "specgate-out\$($slice.Name)\manual") -Force
+$candidate = Join-Path $out 'candidate.otlp.json'
+
+Push-Location $slice.Dir
+try {
+    Invoke-WithCargoPatch -Layout $layout -Pinned $pinned -OutDir $out -Action {
+        specgate validate bundle reference
+        if ($LASTEXITCODE -ne 0) { throw 'Bundle validation failed.' }
+        specgate replay reference --binding specgate.yaml --impl rust --out $candidate --force
+        if ($LASTEXITCODE -ne 0) { throw 'Replay failed.' }
+        specgate validate linked $candidate reference\registry.ctsc.json
+        if ($LASTEXITCODE -ne 0) { throw 'Linked validation failed.' }
+        specgate compare reference\reference.otlp.json $candidate --registry reference\registry.ctsc.json
+        if ($LASTEXITCODE -gt 1) { throw 'Compare failed.' }
+    }
+}
+finally {
+    Pop-Location
+}
 ```
 
-The patch changes `odata-rs\Cargo.lock`. Remove the patch and restore the lock
-file after replay:
+The helper preserves existing output by creating a new run folder when needed.
+It prints the folder path. It removes only its own unchanged Cargo patch and
+restores the original `odata-rs\Cargo.lock`. If the lockfile changed during
+replay, it saves those contents as `Cargo.lock.after-replay` in the run folder.
+The saved file can contain concurrent changes. Inspect it before applying any
+changes. If cleanup fails, keep the files named in the error and inspect them
+before making changes.
 
-```powershell
-Remove-Item <parent>\.cargo -Recurse -Force
-git -C <parent>\odata-rs restore Cargo.lock
-```
-
-Run these commands from `odata.net\specgate-capture\slices\<slice>`. Run each
-command separately. Stop if validation or replay fails.
-
-```powershell
-specgate validate bundle reference
-specgate replay reference --binding specgate.yaml --impl rust --out <candidate.otlp.json> --force
-specgate validate linked <candidate.otlp.json> reference\registry.ctsc.json
-specgate compare reference\reference.otlp.json <candidate.otlp.json> --registry reference\registry.ctsc.json
-```
-
-Write the candidate trace outside the clone. `compare` returns exit code `1`
-when it finds a difference. Compare its output with the expected result for
-the slice:
+`compare` returns exit code `1` when it finds a difference. Compare its output
+with the expected result for the slice:
 
 | Slice | Expected `compare` result |
 | --- | --- |
