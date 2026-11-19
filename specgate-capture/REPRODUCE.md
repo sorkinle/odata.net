@@ -173,7 +173,7 @@ if ($LASTEXITCODE -ne 0 -or $head -ne $pinned.Rev) {
     throw "SpecGate must be checked out at $($pinned.Rev)."
 }
 $slice = Get-SliceInfo -Layout $layout -PullRequest $pullRequest
-git -C $layout.ForkRoot diff --quiet $forkEvidence HEAD -- "specgate-capture\slices\$($slice.Name)"
+git -C $layout.ForkRoot diff --quiet $forkEvidence -- "specgate-capture\slices\$($slice.Name)"
 if ($LASTEXITCODE -ne 0) {
     throw 'The binding or reference changed, or the fork evidence commit is unavailable.'
 }
