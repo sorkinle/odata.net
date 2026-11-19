@@ -45,10 +45,10 @@ the current branch heads, to reproduce an earlier slice.
 
 | Slice | Folder | odata-rs commit | odata.net fork commit | SpecGate commit |
 | --- | --- | --- | --- | --- |
-| 01 CoordinateSystem | `slices/01-coordinate-system` | Pending. Branch `spike/specgate-coordinate-system`, based on `main` at `353587479105553e7fa96330b7448591ec8ee0c4`. | [`e51470cce1805f569011be375b425b3b5e3bc82d`](https://github.com/sorkinle/odata.net/commit/e51470cce1805f569011be375b425b3b5e3bc82d) | `4a904c276e24177c84cf4fb7182c93e811137f9d` |
+| 01 CoordinateSystem | `slices/01-coordinate-system` | `030ffb1e134cb6dc666d26c2e373656f68bc2105`, branch `spike/specgate-coordinate-system`, draft PR [#80](https://github.com/OData/odata-rs/pull/80). | [`e51470cce1805f569011be375b425b3b5e3bc82d`](https://github.com/sorkinle/odata.net/commit/e51470cce1805f569011be375b425b3b5e3bc82d) | `4a904c276e24177c84cf4fb7182c93e811137f9d` |
 
-"Pending" means that the slice changes are not committed yet. Replace it with
-the commit hash when the slice is committed. The odata.net fork commit
+For a new slice, write "Pending" until its changes are committed, then
+replace it with the commit hash. The odata.net fork commit
 contains the annotations, capture setup, binding, and saved reference for the
 slice. Later commits that change only this page do not change the evidence.
 
@@ -58,6 +58,8 @@ capture manifests. The odata-rs test dependency uses the same commit.
 ## Prerequisites
 
 - Git.
+- Read access to [`OData/odata-rs`](https://github.com/OData/odata-rs). The
+  repository is private. The fork `sorkinle/odata.net` and SpecGate are public.
 - PowerShell 7.2 or later, only for the Copilot skill scripts.
 - A Rust toolchain with `cargo`. odata-rs selects its own toolchain through
   `rust-toolchain.toml`. SpecGate needs Rust 1.93 or later.

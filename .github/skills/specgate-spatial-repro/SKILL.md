@@ -63,15 +63,28 @@ The scripts are in `.github/skills/specgate-spatial-repro/scripts/` in the
    ```
 
    Then use the scripts from that clone.
-2. In `odata.net`, read `specgate-capture/REPRODUCE.md`. Find the row for
-   the slice in the versions table. Check out the odata.net fork commit from
-   that row in detached mode. If you check out a commit, tell the user.
-   Run `git status --short` first. Stop if the clone has changes.
-3. If `<parent>\odata-rs` does not exist, clone `https://github.com/OData/odata-rs`
-   into it. Check out the odata-rs commit from the row, or the branch or
-   pull request that the user gave. For a pull request, use
+2. In `odata.net`, run `git status --short`. Stop if the clone has changes.
+   Stay on the head of `spike/specgate-spatial-coordinated`. Do not check
+   out an older commit: this skill was added after the Slice 1 evidence
+   commit, so an older checkout removes the scripts.
+3. Read `specgate-capture/REPRODUCE.md`. Find the row for the slice in the
+   versions table. Check that the slice evidence has not changed since the
+   odata.net fork commit in that row:
+
+   ```powershell
+   git -C <parent>\odata.net diff --quiet <fork-commit> HEAD -- specgate-capture/slices/<slice>
+   ```
+
+   Exit code `1` means that the binding or saved reference changed. Tell the
+   user and stop. For discover or capture of an older slice, tell the user
+   that the C# sources at the branch head can include later annotations.
+4. If `<parent>\odata-rs` does not exist, clone `https://github.com/OData/odata-rs`
+   into it. The repository is private. If the clone reports
+   `Repository not found`, tell the user that they need read access to
+   `OData/odata-rs`, and stop. Check out the odata-rs commit from the row,
+   or the branch or pull request that the user gave. For a pull request, use
    `git fetch origin pull/<number>/head` and check out `FETCH_HEAD`.
-4. Check that `odata-rs\Cargo.toml` has a `specgate` dependency with a `git`
+5. Check that `odata-rs\Cargo.toml` has a `specgate` dependency with a `git`
    URL and a `rev`. If it does not, the odata-rs checkout does not contain
    the slice. Stop and tell the user.
 
