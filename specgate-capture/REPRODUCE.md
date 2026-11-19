@@ -21,6 +21,23 @@ differences and the declarations that were not compared.
 API ledgers, slice plans, and full reports are kept in a separate review
 workspace. They are not published in either repository.
 
+## Reproduce with GitHub Copilot
+
+The skill `.github/skills/specgate-spatial-repro` in this repository runs the
+steps on this page. It sets up the repositories, builds SpecGate from source,
+and runs replay. On request, it also runs discovery and a fresh capture with
+the test gate. It then compares the results with the expected results below.
+
+1. Clone this fork branch into an empty parent folder, as in step 2.
+2. Start GitHub Copilot CLI in the `odata.net` clone. Copilot loads the skill
+   from `.github/skills/`.
+3. Ask, for example: "Use the specgate-spatial-repro skill to replay slice
+   01-coordinate-system." Add "with discovery and capture" for a full run.
+
+The scripts need PowerShell 7 and the prerequisites below. You can also run
+them without Copilot. See the skill's `SKILL.md` for the commands. They write
+all results to `<parent>\specgate-out\` and do not change tracked files.
+
 ## Versions by slice
 
 Later slices build on earlier code. Use the commits from the slice row, not
@@ -41,6 +58,7 @@ capture manifests. The odata-rs test dependency uses the same commit.
 ## Prerequisites
 
 - Git.
+- PowerShell 7.2 or later, only for the Copilot skill scripts.
 - A Rust toolchain with `cargo`. odata-rs selects its own toolchain through
   `rust-toolchain.toml`. SpecGate needs Rust 1.93 or later.
 - [`just`](https://github.com/casey/just), to build the SpecGate C# tools.
