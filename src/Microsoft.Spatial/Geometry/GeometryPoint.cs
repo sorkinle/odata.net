@@ -4,9 +4,12 @@
 // </copyright>
 //---------------------------------------------------------------------
 
+using SpecGate.Annotations;
+
 namespace Microsoft.Spatial
 {
     /// <summary>Represents the Geometry Point.</summary>
+    [SpecEvent("GeometryPoint")]
     public abstract class GeometryPoint : Geometry
     {
         /// <summary>Initializes a new instance of the <see cref="Microsoft.Spatial.GeometryPoint" /> class. Empty Point constructor.</summary>
@@ -44,6 +47,8 @@ namespace Microsoft.Spatial
         /// <param name="x">The x dimension.</param>
         /// <param name="y">The y dimension.</param>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704", Justification = "x and y are meaningful")]
+        [SpecOperation("geometry_point_create_2d", Spec = "spatial.shapes.points")]
+        [SpecException(typeof(System.ArgumentException))]
         public static GeometryPoint Create(double x, double y)
         {
             return Create(CoordinateSystem.DefaultGeometry, x, y, null, null);
@@ -55,6 +60,8 @@ namespace Microsoft.Spatial
         /// <param name="y">The y dimension.</param>
         /// <param name="z">The z dimension.</param>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704", Justification = "x, y and z are meaningful")]
+        [SpecOperation("geometry_point_create_3d", Spec = "spatial.shapes.points")]
+        [SpecException(typeof(System.ArgumentException))]
         public static GeometryPoint Create(double x, double y, double? z)
         {
             return Create(CoordinateSystem.DefaultGeometry, x, y, z, null);
@@ -67,6 +74,8 @@ namespace Microsoft.Spatial
         /// <param name="z">The z dimension.</param>
         /// <param name="m">The m dimension.</param>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704", Justification = "x, y, z and m are meaningful")]
+        [SpecOperation("geometry_point_create_4d", Spec = "spatial.shapes.points")]
+        [SpecException(typeof(System.ArgumentException))]
         public static GeometryPoint Create(double x, double y, double? z, double? m)
         {
             return Create(CoordinateSystem.DefaultGeometry, x, y, z, m);
@@ -80,6 +89,8 @@ namespace Microsoft.Spatial
         /// <param name="z">The z dimension.</param>
         /// <param name="m">The m dimension.</param>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704", Justification = "x, y, z and m are meaningful")]
+        [SpecOperation("geometry_point_create_with_crs", Spec = "spatial.shapes.points")]
+        [SpecException(typeof(System.ArgumentException))]
         public static GeometryPoint Create(CoordinateSystem coordinateSystem, double x, double y, double? z, double? m)
         {
             var builder = SpatialBuilder.Create();

@@ -1,0 +1,18 @@
+# Paths are relative to this binding. Place the two repositories side by side.
+components:
+  spatial.shapes.points:
+    implementations:
+      csharp:
+        language: csharp
+        sources: ../../../src/Microsoft.Spatial
+        tests:
+          projects:
+            - ../../Microsoft.Spatial.Shapes.Capture.csproj
+        csharp:
+          framework: net8.0
+      rust:
+        language: rust
+        sources: ../../../../odata-rs/crates/odata-spatial-core
+        tests:
+          projects:
+            - ../../../../odata-rs/crates/odata-spatial-core/Cargo.toml

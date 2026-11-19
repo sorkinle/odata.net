@@ -4,9 +4,12 @@
 // </copyright>
 //---------------------------------------------------------------------
 
+using SpecGate.Annotations;
+
 namespace Microsoft.Spatial
 {
     /// <summary>Represents a geography point.</summary>
+    [SpecEvent("GeographyPoint")]
     public abstract class GeographyPoint : Geography
     {
         /// <summary>Initializes a new instance of the <see cref="Microsoft.Spatial.GeographyPoint" /> class.</summary>
@@ -41,6 +44,8 @@ namespace Microsoft.Spatial
         /// <returns>The geography point that was created.</returns>
         /// <param name="latitude">The latitude.</param>
         /// <param name="longitude">The longitude.</param>
+        [SpecOperation("geography_point_create_2d", Spec = "spatial.shapes.points")]
+        [SpecException(typeof(System.ArgumentException))]
         public static GeographyPoint Create(double latitude, double longitude)
         {
             return Create(CoordinateSystem.DefaultGeography, latitude, longitude, null, null);
@@ -52,6 +57,8 @@ namespace Microsoft.Spatial
         /// <param name="longitude">The longitude.</param>
         /// <param name="z">The z dimension.</param>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704", Justification = "z is meaningful")]
+        [SpecOperation("geography_point_create_3d", Spec = "spatial.shapes.points")]
+        [SpecException(typeof(System.ArgumentException))]
         public static GeographyPoint Create(double latitude, double longitude, double? z)
         {
             return Create(CoordinateSystem.DefaultGeography, latitude, longitude, z, null);
@@ -64,6 +71,8 @@ namespace Microsoft.Spatial
         /// <param name="z">The z dimension.</param>
         /// <param name="m">The m dimension.</param>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704", Justification = "z and m are meaningful")]
+        [SpecOperation("geography_point_create_4d", Spec = "spatial.shapes.points")]
+        [SpecException(typeof(System.ArgumentException))]
         public static GeographyPoint Create(double latitude, double longitude, double? z, double? m)
         {
             return Create(CoordinateSystem.DefaultGeography, latitude, longitude, z, m);
@@ -77,6 +86,8 @@ namespace Microsoft.Spatial
         /// <param name="z">The z dimension.</param>
         /// <param name="m">The m dimension.</param>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704", Justification = "z and m are meaningful")]
+        [SpecOperation("geography_point_create_with_crs", Spec = "spatial.shapes.points")]
+        [SpecException(typeof(System.ArgumentException))]
         public static GeographyPoint Create(CoordinateSystem coordinateSystem, double latitude, double longitude, double? z, double? m)
         {
             var builder = SpatialBuilder.Create();

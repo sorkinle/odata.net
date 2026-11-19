@@ -35,6 +35,7 @@ namespace Microsoft.Spatial
 
         /// <summary>Gets the coordinate system of the geography.</summary>
         /// <returns>The coordinate system of the geography.</returns>
+        [SpecGate.Annotations.SpecEvent]
         public CoordinateSystem CoordinateSystem
         {
             get

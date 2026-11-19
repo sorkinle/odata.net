@@ -32,6 +32,7 @@ namespace Microsoft.Spatial
 
         /// <summary>Gets the SRID of this instance of geometry.</summary>
         /// <returns>The SRID of this instance of geometry.</returns>
+        [SpecGate.Annotations.SpecEvent]
         public CoordinateSystem CoordinateSystem
         {
             get

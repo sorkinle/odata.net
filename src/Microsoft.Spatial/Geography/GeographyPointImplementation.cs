@@ -7,10 +7,12 @@
 namespace Microsoft.Spatial
 {
     using System;
+    using SpecGate.Annotations;
 
     /// <summary>
     /// This class is an implementation of Geography point.
     /// </summary>
+    [SpecEvent("GeographyPointImplementation")]
     internal class GeographyPointImplementation : GeographyPoint
     {
         /// <summary>
@@ -81,6 +83,7 @@ namespace Microsoft.Spatial
         /// <summary>
         /// Latitude
         /// </summary>
+        [SpecEvent]
         public override double Latitude
         {
             get
@@ -97,6 +100,7 @@ namespace Microsoft.Spatial
         /// <summary>
         /// Longitude
         /// </summary>
+        [SpecEvent]
         public override double Longitude
         {
             get
@@ -113,6 +117,7 @@ namespace Microsoft.Spatial
         /// <summary>
         /// Is Point Empty
         /// </summary>
+        [SpecEvent]
         public override bool IsEmpty
         {
             get
@@ -125,6 +130,7 @@ namespace Microsoft.Spatial
         /// Nullable Z
         /// </summary>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704", Justification = "z and m are meaningful")]
+        [SpecEvent]
         public override double? Z
         {
             get { return this.z; }
@@ -134,6 +140,7 @@ namespace Microsoft.Spatial
         /// Nullable M
         /// </summary>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704", Justification = "z and m are meaningful")]
+        [SpecEvent]
         public override double? M
         {
             get { return this.m; }

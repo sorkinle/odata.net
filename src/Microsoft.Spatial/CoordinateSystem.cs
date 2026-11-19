@@ -8,12 +8,14 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
+using SpecGate.Annotations;
 
 namespace Microsoft.Spatial
 {
     /// <summary>
     ///   Coordinate System Reference
     /// </summary>
+    [SpecEvent("CoordinateSystem", Setup = true)]
     public class CoordinateSystem
     {
         /// <summary>
@@ -81,10 +83,12 @@ namespace Microsoft.Spatial
         /// <summary>Gets the coordinate system ID according to the EPSG, or NULL if this is not an EPSG coordinate system.</summary>
         /// <returns>The coordinate system ID according to the EPSG.</returns>
         [SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Epsg", Justification = "This is not hungarian notation, but the widley accepted abreviation")]
+        [SpecEvent]
         public int? EpsgId { get; internal set; }
 
         /// <summary>Gets the coordinate system Id, no matter what scheme is used.</summary>
         /// <returns>The coordinate system Id.</returns>
+        [SpecEvent]
         public string Id
         {
             get { return EpsgId.Value.ToString(CultureInfo.InvariantCulture); }
@@ -92,6 +96,7 @@ namespace Microsoft.Spatial
 
         /// <summary>Gets the Name of the Reference.</summary>
         /// <returns>The Name of the Reference.</returns>
+        [SpecEvent]
         public string Name { get; internal set; }
 
         /// <summary>Gets or creates a Geography coordinate system with the ID, or the default if null is given.</summary>
