@@ -51,6 +51,7 @@ the current branch heads, to reproduce an earlier slice.
 
 | Slice | Folder | odata-rs commit | odata.net fork commit | SpecGate commit |
 | --- | --- | --- | --- | --- |
+| Positions | `02-positions` | [`d3f82f5` (PR #85)](https://github.com/OData/odata-rs/pull/85) | `8eddb0f45` | `4a904c276e24177c84cf4fb7182c93e811137f9d` |
 
 Each slice's source branch adds its own row. For a new slice, write
 "Pending" until its changes are committed, then
@@ -216,6 +217,7 @@ with the expected result for the slice:
 
 | Slice | Expected `compare` result |
 | --- | --- |
+| Positions | `equivalent: false`. Two result mismatches: `geography_to_string` and `geometry_to_string` use exponent notation in C# and decimal notation in Rust. |
 
 A new validation error or a different set of mismatches is a new finding.
 
