@@ -9,3 +9,9 @@ components:
             - ../../Microsoft.Spatial.Errors.Capture.csproj
         csharp:
           framework: net8.0
+      rust:
+        language: rust
+        sources: ../../../../odata-rs/crates/odata-spatial-wkt
+        tests:
+          projects:
+            - ../../../../odata-rs/crates/odata-spatial-wkt/Cargo.toml

@@ -265,12 +265,12 @@ script enforces this with a machine-wide lock.
    behavior or the capture changed. Review it. Do not replace a saved
    reference with a fresh capture.
 
-## Slice 3 local C# reference
+## Slice 3 errors and SpatialType
 
-The local Slice 3 source branch is `spike/specgate-spatial-errors`, based on
+The Slice 3 source branch is `spike/specgate-spatial-errors`, based on
 the shared infrastructure. Its binding and saved reference are in
-`slices/03-errors-and-spatial-type`. There is no published Rust PR or Rust
-comparison yet. The versions table will receive a row when that PR exists.
+`slices/03-errors-and-spatial-type`. The Rust candidate is
+`spike/specgate-errors-and-spatial-type`, based on Slice 2.
 
 The component `spatial.errors_and_spatial_type` contains two narrow helpers:
 
@@ -307,8 +307,19 @@ The build used SDK 10.0.404 with runtime 8.0.34 and the pinned SpecGate build.
 
 Use the scripts in `.github/skills/specgate-spatial-repro/scripts` with
 `-Slice 03-errors-and-spatial-type` to inspect or recapture this C# reference.
-The binding currently declares only `csharp`; replay waits for the approved
-Rust layer based on a stable Slice 2 commit.
+The binding declares `csharp` and `rust`. The Rust adapters live in the WKT
+crate's `specgate_errors_and_spatial_type` integration-test target.
+They select native enum variants and call `read_geography` with `Options::sql()`
+or `Options::sql_2d()`. Reader failures retain the native `Display` string.
+Unsupported enum names fail as adapter faults, not native enum-validation
+results. The saved inputs contain only the nine mapped names.
+
+The local replay compared equivalent under `ctsc.strict/0.2.0`: 14 scenarios,
+15 operation calls, and zero mismatch lines. This covers nine name/discriminant
+observations, five reader error messages, and one completion control.
+It does not establish constructor, exception-type, source-chain, or formatter
+parity. The three Rust adapter tests also exercise dimension-option forwarding;
+the saved C# reference contains only `twoDimensions=false`.
 
 ## Add a slice
 
