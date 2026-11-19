@@ -1,0 +1,11 @@
+components:
+  spatial.errors_and_spatial_type:
+    implementations:
+      csharp:
+        language: csharp
+        sources: ../../../src/Microsoft.Spatial
+        tests:
+          projects:
+            - ../../Microsoft.Spatial.Errors.Capture.csproj
+        csharp:
+          framework: net8.0

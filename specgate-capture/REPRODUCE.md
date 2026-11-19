@@ -265,6 +265,51 @@ script enforces this with a machine-wide lock.
    behavior or the capture changed. Review it. Do not replace a saved
    reference with a fresh capture.
 
+## Slice 3 local C# reference
+
+The local Slice 3 source branch is `spike/specgate-spatial-errors`, based on
+the shared infrastructure. Its binding and saved reference are in
+`slices/03-errors-and-spatial-type`. There is no published Rust PR or Rust
+comparison yet. The versions table will receive a row when that PR exists.
+
+The component `spatial.errors_and_spatial_type` contains two narrow helpers:
+
+- `spatial_type_identity(name)` maps a primitive name to a real `SpatialType`
+  constant and records its native name and integer discriminant.
+- `read_wkt_geography(text, twoDimensions)` calls the real geography reader.
+  It records the unmodified `ParseErrorException.Message` for failures.
+  Success records completion only, not the returned shape.
+
+This boundary is not formatter parity evidence. Slice 6 owns every formatter
+declaration and records its own behavior. The error helper uses the native
+materializing read overload. Four existing tests retain their original
+assertions and five malformed input strings, but call this helper instead of
+the test-only position pipeline. One `POINT EMPTY` control checks successful
+completion.
+
+`Microsoft.Spatial.Errors.Capture.csproj` links the existing formatter test
+file and its helpers. `ErrorsCaptureTests.cs` adds the missing enum observations
+and constructor cases. Bootstrap capture passed all 49 configured net8.0 tests
+exactly once, with no failures or skips. The saved reference has 14 scenarios
+and 15 operation calls: nine enum observations, five parse failures, and the
+successful control. The other 35 passing tests have no captured operations.
+The ten exception-constructor cases are native C# evidence only. They do not
+record constructor messages, runtime type, or inner-exception metadata.
+
+SpecGate operations can annotate methods, not enum constants or constructors.
+The helper class remains internal, so it adds no shipped public API.
+The reference cannot establish arbitrary enum-cast behavior, downstream type
+acceptance, exception-type equivalence, or cause-chain parity. No value is
+fabricated to fill a missing Rust API.
+
+The build used SDK 10.0.404 with runtime 8.0.34 and the pinned SpecGate build.
+`Microsoft.SourceLink.GitHub` remains 10.0.402. No restore downgrade was needed.
+
+Use the scripts in `.github/skills/specgate-spatial-repro/scripts` with
+`-Slice 03-errors-and-spatial-type` to inspect or recapture this C# reference.
+The binding currently declares only `csharp`; replay waits for the approved
+Rust layer based on a stable Slice 2 commit.
+
 ## Add a slice
 
 1. Create the slice's C# source branch from `spike/specgate-spatial-repro-infra`,

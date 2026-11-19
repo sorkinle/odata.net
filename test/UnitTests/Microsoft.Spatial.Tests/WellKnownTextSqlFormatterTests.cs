@@ -311,7 +311,7 @@ namespace Microsoft.Spatial.Tests
         {
             Action<string> readGeography =
                 (s) =>
-                this.d4Formatter.Read<Geography>(new StringReader(s), new SpatialToPositionPipeline());
+                ErrorsCaptureBoundary.ReadWktGeography(s, false);
 
             Exception ex = SpatialTestUtils.RunCatching<ParseErrorException>(() => readGeography("SRID=1234;FOO(10 20)"));
             Assert.NotNull(ex);
@@ -327,7 +327,7 @@ namespace Microsoft.Spatial.Tests
         {
             Action<string> readGeography =
                 (s) =>
-                this.d4Formatter.Read<Geography>(new StringReader(s), new SpatialToPositionPipeline());
+                ErrorsCaptureBoundary.ReadWktGeography(s, false);
 
             Exception ex = SpatialTestUtils.RunCatching<ParseErrorException>(() => readGeography("POINT:10 20"));
             Assert.NotNull(ex);
@@ -339,7 +339,7 @@ namespace Microsoft.Spatial.Tests
         {
             Action<string> readGeography =
                 (s) =>
-                this.d4Formatter.Read<Geography>(new StringReader(s), new SpatialToPositionPipeline());
+                ErrorsCaptureBoundary.ReadWktGeography(s, false);
 
             Exception ex = SpatialTestUtils.RunCatching<ParseErrorException>(() => readGeography(""));
             Assert.NotNull(ex);
@@ -351,7 +351,7 @@ namespace Microsoft.Spatial.Tests
         {
             Action<string> readGeography =
                 (s) =>
-                this.d4Formatter.Read<Geography>(new StringReader(s), new SpatialToPositionPipeline());
+                ErrorsCaptureBoundary.ReadWktGeography(s, false);
 
             Exception ex = SpatialTestUtils.RunCatching<ParseErrorException>(() => readGeography("POINT(10,20)"));
             Assert.NotNull(ex);
