@@ -51,7 +51,7 @@ the current branch heads, to reproduce an earlier slice.
 
 | Slice | Folder | odata-rs commit | odata.net fork commit | SpecGate commit |
 | --- | --- | --- | --- | --- |
-| 3 | `03-errors-and-spatial-type` | [`15a803137d8e7c9a703e74d71a33d2b2ba507cf1` (PR #82)](https://github.com/OData/odata-rs/pull/82) | `cdcf482ba4ae78f3bd64a1410fe184975369c88f` | `4a904c276e24177c84cf4fb7182c93e811137f9d` |
+| 3 | `slices/03-errors-and-spatial-type` | [`15a803137d8e7c9a703e74d71a33d2b2ba507cf1` (PR #82)](https://github.com/OData/odata-rs/pull/82) | `cdcf482ba4ae78f3bd64a1410fe184975369c88f` | `4a904c276e24177c84cf4fb7182c93e811137f9d` |
 
 Each slice's source branch adds its own row. For a new slice, write
 "Pending" until its changes are committed, then
