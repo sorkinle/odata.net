@@ -28,10 +28,12 @@ the current branch heads, to reproduce an earlier slice.
 
 | Slice | Folder | odata-rs commit | odata.net fork commit | SpecGate commit |
 | --- | --- | --- | --- | --- |
-| 01 CoordinateSystem | `slices/01-coordinate-system` | Pending. Branch `spike/specgate-coordinate-system`, based on `main` at `353587479105553e7fa96330b7448591ec8ee0c4`. | Pending. Based on `2eaed2119755d51fbbc87d9d7e9e6d358e050d0a`. | `4a904c276e24177c84cf4fb7182c93e811137f9d` |
+| 01 CoordinateSystem | `slices/01-coordinate-system` | Pending. Branch `spike/specgate-coordinate-system`, based on `main` at `353587479105553e7fa96330b7448591ec8ee0c4`. | [`e51470cce1805f569011be375b425b3b5e3bc82d`](https://github.com/sorkinle/odata.net/commit/e51470cce1805f569011be375b425b3b5e3bc82d) | `4a904c276e24177c84cf4fb7182c93e811137f9d` |
 
 "Pending" means that the slice changes are not committed yet. Replace it with
-the commit hash when the slice is committed.
+the commit hash when the slice is committed. The odata.net fork commit
+contains the annotations, capture setup, binding, and saved reference for the
+slice. Later commits that change only this page do not change the evidence.
 
 SpecGate has no `v0.6.0` tag. The pinned commit reports version `0.6.0` in
 capture manifests. The odata-rs test dependency uses the same commit.
