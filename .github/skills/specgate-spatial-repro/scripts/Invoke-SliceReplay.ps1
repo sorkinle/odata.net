@@ -8,6 +8,10 @@ Runs, in order: validate bundle, replay, validate linked, and compare. Writes
 each command's output, the candidate trace, and summary.json to -OutDir
 (default <parent>\specgate-out\<slice>\replay).
 
+Use -PullRequest to select the reference published for an odata-rs PR. If
+there is one complete published reference, it is selected when both
+-PullRequest and -Slice are omitted.
+
 The pinned SpecGate CLI rejects a Git-sourced specgate dependency during
 replay. For the replay only, this script adds a temporary
 <parent>\.cargo\config.toml that patches the odata-rs specgate dependency to
@@ -19,7 +23,8 @@ differences, 2 when a step fails before compare finishes.
 #>
 [CmdletBinding()]
 param(
-    [Parameter(Mandatory)] [string] $Slice,
+    [string] $Slice,
+    [string] $PullRequest,
     [string] $OutDir,
     [string] $SpecGateRoot,
     [switch] $Force
@@ -31,7 +36,8 @@ Import-Module (Join-Path $PSScriptRoot 'SpecGateRepro.psm1') -Force
 
 $layout = Get-ReproLayout -SpecGateRoot $SpecGateRoot
 Assert-SpecGateInstalled -Layout $layout
-$sliceInfo = Get-SliceInfo -Layout $layout -Slice $Slice
+$sliceInfo = Get-SliceInfo -Layout $layout -Slice $Slice -PullRequest $PullRequest
+$Slice = $sliceInfo.Name
 $pinned = Get-PinnedSpecGateDependency -Layout $layout
 
 $specgateHead = (& git -C $layout.SpecGateRoot rev-parse HEAD)

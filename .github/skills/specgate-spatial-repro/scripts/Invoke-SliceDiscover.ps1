@@ -9,13 +9,18 @@ registry. It then checks that the registry has the same content as the
 registry in the slice's saved reference. A difference means that the
 annotations changed after the reference was recorded.
 
+Use -PullRequest to select the published reference for an odata-rs PR. If
+there is one complete reference, it is selected when both -PullRequest and
+-Slice are omitted.
+
 Writes registry.ctsc.json and logs to -OutDir (default
 <parent>\specgate-out\<slice>\discover). Exit code 0 means that the registry
 is valid and matches; 1 means that it differs; 2 means that a step failed.
 #>
 [CmdletBinding()]
 param(
-    [Parameter(Mandatory)] [string] $Slice,
+    [string] $Slice,
+    [string] $PullRequest,
     [string] $OutDir,
     [string] $SpecGateRoot,
     [string] $FeedPath,
@@ -28,7 +33,8 @@ Import-Module (Join-Path $PSScriptRoot 'SpecGateRepro.psm1') -Force
 
 $layout = Get-ReproLayout -SpecGateRoot $SpecGateRoot -FeedPath $FeedPath
 Assert-SpecGateInstalled -Layout $layout
-$sliceInfo = Get-SliceInfo -Layout $layout -Slice $Slice
+$sliceInfo = Get-SliceInfo -Layout $layout -Slice $Slice -PullRequest $PullRequest
+$Slice = $sliceInfo.Name
 Set-AnnotationsFeed -Layout $layout
 
 if (-not $OutDir) { $OutDir = Join-Path $layout.Parent "specgate-out\$Slice\discover" }

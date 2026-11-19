@@ -1,22 +1,22 @@
 ---
 name: specgate-spatial-repro
-description: "Reproduces the SpecGate parity evidence for the odata-rs spatial slices. Sets up SpecGate from source, the annotated odata.net fork branch, and the odata-rs slice branch, then runs discover, capture, and replay for a slice and compares the results with the published expectations. Use when asked to reproduce, replay, recapture, or verify Microsoft.Spatial SpecGate evidence for an odata-rs spatial PR."
+description: "Reproduces the SpecGate parity evidence for an odata-rs spatial PR. Sets up SpecGate from source, the annotated odata.net branch, and the Rust PR, then selects the published reference and runs replay. Can also run discovery and capture. Use when asked to reproduce, replay, recapture, or verify Microsoft.Spatial SpecGate evidence."
 ---
 
 # Reproduce the SpecGate spatial parity evidence
 
-This skill reproduces the evidence for one spatial slice. It compares the C#
-behavior of Microsoft.Spatial in OData.NET with the Rust behavior in
-`odata-rs`. The shared guide is `specgate-capture/REPRODUCE.md` in this
-repository. That guide is the source of truth for commits and expected
-results. This skill automates its steps.
+This skill reproduces the evidence for one odata-rs spatial PR. It compares
+Microsoft.Spatial behavior in OData.NET with Rust behavior in `odata-rs`.
+`specgate-capture/REPRODUCE.md` in the annotated branch records the published
+references, commits, and expected results.
 
 A replay shows how the Rust code behaves on the recorded C# inputs. It does
 not prove parity. Report the observed results. Do not claim parity.
 
 ## Rules
 
-- Do not change tracked files in any clone. All output goes to
+- Do not edit tracked files in any clone. Check out a branch or PR only in a
+  clean clone. All output goes to
   `<parent>\specgate-out\<slice>\`, outside the clones.
 - Do not edit the saved reference in `specgate-capture/slices/<slice>/reference/`.
 - Do not change Rust or C# code to make results match. A difference from the
@@ -32,10 +32,15 @@ Ask the user only for inputs that you cannot find:
 
 | Input | Default |
 | --- | --- |
+| Annotated odata.net source | The existing fork checkout, or `sorkinle/odata.net` branch `spike/specgate-spatial-coordinated`. |
+| Target Rust PR | The current PR, if known. Otherwise ask for its URL. |
 | Parent folder | The parent of the `odata.net` clone that contains this skill. |
-| Slice | The only folder under `specgate-capture/slices/`, or ask if there are more. |
-| odata-rs source | The odata-rs commit for the slice in the version table of `REPRODUCE.md`. If the table says "Pending", ask for the odata-rs branch, pull request, or local path. |
 | Tasks | Replay. Run discover and capture only when the user asks, or asks for full reproduction. |
+
+Do not ask the user for a slice name or folder. The annotated branch contains
+the binding and saved reference. Select them from the `REPRODUCE.md` row for
+the target PR. If that row is missing, ambiguous, or incomplete, report the
+missing published reference and stop. Do not replay a different component.
 
 ## Folder layout
 
@@ -56,20 +61,29 @@ The scripts are in `.github/skills/specgate-spatial-repro/scripts/` in the
 ## Step 1: Set up the repositories
 
 1. If this skill was loaded from a personal skills folder and no `odata.net`
-   clone exists, clone the fork into the parent folder:
+   clone exists, clone the annotated source branch into the parent folder:
 
    ```powershell
-   git clone --branch spike/specgate-spatial-coordinated https://github.com/sorkinle/odata.net <parent>\odata.net
+   git clone --branch <source-branch> <source-repository-url> <parent>\odata.net
    ```
 
-   Then use the scripts from that clone.
+   Use the default fork and branch from the inputs table if the user did not
+   supply another. Use the scripts from that clone. If the branch does not
+   contain the skill or a published binding and reference, report what is
+   missing and stop.
 2. In `odata.net`, run `git status --short`. Stop if the clone has changes.
-   Stay on the head of `spike/specgate-spatial-coordinated`. Do not check
-   out an older commit: this skill was added after the Slice 1 evidence
-   commit, so an older checkout removes the scripts.
-3. Read `specgate-capture/REPRODUCE.md`. Find the row for the slice in the
-   versions table. Check that the slice evidence has not changed since the
-   odata.net fork commit in that row:
+   Use the requested annotated branch. Do not check out its older evidence
+   commit: that commit may not contain the skill scripts.
+3. If `<parent>\odata-rs` does not exist, clone `https://github.com/OData/odata-rs`
+   into it. The repository is private. If the clone reports
+   `Repository not found`, tell the user that they need read access to
+   `OData/odata-rs`, and stop. Check that the clone is clean before checkout.
+   Fetch the target PR with `git fetch origin pull/<number>/head`, then check
+   out `FETCH_HEAD`. Do not discard existing changes.
+4. Read `specgate-capture/REPRODUCE.md`. Find the versions-table row for the
+   target PR URL. The row identifies the reference folder and the fork
+   evidence commit. Do not ask the user for that folder. Check that its
+   contents have not changed since the evidence commit:
 
    ```powershell
    git -C <parent>\odata.net diff --quiet <fork-commit> HEAD -- specgate-capture/slices/<slice>
@@ -78,12 +92,8 @@ The scripts are in `.github/skills/specgate-spatial-repro/scripts/` in the
    Exit code `1` means that the binding or saved reference changed. Tell the
    user and stop. For discover or capture of an older slice, tell the user
    that the C# sources at the branch head can include later annotations.
-4. If `<parent>\odata-rs` does not exist, clone `https://github.com/OData/odata-rs`
-   into it. The repository is private. If the clone reports
-   `Repository not found`, tell the user that they need read access to
-   `OData/odata-rs`, and stop. Check out the odata-rs commit from the row,
-   or the branch or pull request that the user gave. For a pull request, use
-   `git fetch origin pull/<number>/head` and check out `FETCH_HEAD`.
+   The requested PR head may differ from the recorded odata-rs commit. Report
+   both commits and compare the results with the published expectations.
 5. Check that `odata-rs\Cargo.toml` has a `specgate` dependency with a `git`
    URL and a `rev`. If it does not, the odata-rs checkout does not contain
    the slice. Stop and tell the user.
@@ -116,10 +126,11 @@ full path.
 ## Step 4: Replay the saved reference
 
 ```powershell
-pwsh -File $skill\scripts\Invoke-SliceReplay.ps1 -Slice <slice>
+pwsh -File $skill\scripts\Invoke-SliceReplay.ps1 -PullRequest <rust-pr-url>
 ```
 
-The script validates the saved bundle, replays it against odata-rs,
+The script selects the published reference for the PR URL. It validates the
+saved bundle, replays it against odata-rs,
 validates the candidate trace against the registry, and compares the traces.
 For the replay only, it adds a temporary `<parent>\.cargo\config.toml` patch,
 because the pinned CLI rejects the Git-sourced `specgate` dependency. It then
@@ -140,7 +151,7 @@ expected result for the slice in `REPRODUCE.md`. Report:
 ## Step 5: Run discovery (optional)
 
 ```powershell
-pwsh -File $skill\scripts\Invoke-SliceDiscover.ps1 -Slice <slice>
+pwsh -File $skill\scripts\Invoke-SliceDiscover.ps1 -PullRequest <rust-pr-url>
 ```
 
 The script runs `specgate discover` on the annotated C# sources and validates
@@ -151,7 +162,7 @@ after the reference was recorded. Report it.
 ## Step 6: Record a fresh C# reference (optional)
 
 ```powershell
-pwsh -File $skill\scripts\Invoke-SliceCapture.ps1 -Slice <slice>
+pwsh -File $skill\scripts\Invoke-SliceCapture.ps1 -PullRequest <rust-pr-url>
 ```
 
 The script runs the C# capture tests on .NET 8, runs `specgate capture`,

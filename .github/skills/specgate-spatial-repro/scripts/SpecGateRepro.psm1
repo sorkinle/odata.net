@@ -67,17 +67,111 @@ function Get-PinnedSpecGateDependency {
     }
 }
 
+function Get-PublishedSliceName {
+    param(
+        [Parameter(Mandatory)] $Layout,
+        [string] $Slice,
+        [string] $PullRequest
+    )
+
+    if ($Slice -and $PullRequest) {
+        throw 'Use either -PullRequest or -Slice, not both.'
+    }
+    if ($Slice) {
+        if ($Slice -notmatch '^[A-Za-z0-9][A-Za-z0-9._-]*$') {
+            throw "Invalid slice name: $Slice."
+        }
+        return $Slice
+    }
+
+    $slicesDir = Join-Path $Layout.CaptureRoot 'slices'
+    if (-not (Test-Path -LiteralPath $slicesDir -PathType Container)) {
+        throw "No published references found in $slicesDir. A binding and captured reference are required for replay."
+    }
+
+    if ($PullRequest) {
+        if ($PullRequest -match '^#?([1-9][0-9]*)$') {
+            $prNumber = $Matches[1]
+        }
+        else {
+            [uri] $prUri = $null
+            if (-not [uri]::TryCreate($PullRequest, [UriKind]::Absolute, [ref] $prUri) -or
+                $prUri.Scheme -ne 'https' -or $prUri.Host -ne 'github.com') {
+                throw "Expected an OData/odata-rs pull request URL or number; received $PullRequest."
+            }
+            $pathMatch = [regex]::Match($prUri.AbsolutePath, '^/OData/odata-rs/pull/([1-9][0-9]*)(?:/.*)?$',
+                [System.Text.RegularExpressions.RegexOptions]::IgnoreCase)
+            if (-not $pathMatch.Success) {
+                throw "Expected an OData/odata-rs pull request URL or number; received $PullRequest."
+            }
+            $prNumber = $pathMatch.Groups[1].Value
+        }
+        $prPath = "/OData/odata-rs/pull/$prNumber"
+        $guide = Join-Path $Layout.CaptureRoot 'REPRODUCE.md'
+        if (-not (Test-Path -LiteralPath $guide -PathType Leaf)) {
+            throw "Cannot find the reference version table at $guide."
+        }
+
+        $matches = @(
+            foreach ($line in Get-Content -LiteralPath $guide) {
+                $columns = $line -split '\|'
+                if ($columns.Count -lt 6 -or
+                    $columns[2] -notmatch '^\s*`slices[\\/]([A-Za-z0-9][A-Za-z0-9._-]*)`\s*$') {
+                    continue
+                }
+                $name = $Matches[1]
+                $links = [regex]::Matches($columns[3], '\]\((https://github\.com/OData/odata-rs/pull/[1-9][0-9]*/?(?:[?#][^)]*)?)\)',
+                    [System.Text.RegularExpressions.RegexOptions]::IgnoreCase)
+                foreach ($link in $links) {
+                    $publishedUri = [uri] $link.Groups[1].Value
+                    if ($publishedUri.AbsolutePath.TrimEnd('/') -ieq $prPath) {
+                        $name
+                        break
+                    }
+                }
+            }
+        )
+        if ($matches.Count -ne 1) {
+            throw "Expected one published reference for $PullRequest in $guide; found $($matches.Count). Do not select a reference by guesswork."
+        }
+        return $matches[0]
+    }
+
+    $available = @(
+        Get-ChildItem -LiteralPath $slicesDir -Directory | Where-Object {
+            (Test-Path -LiteralPath (Join-Path $_.FullName 'specgate.yaml') -PathType Leaf) -and
+            (Test-Path -LiteralPath (Join-Path $_.FullName 'reference\manifest.json') -PathType Leaf) -and
+            (Test-Path -LiteralPath (Join-Path $_.FullName 'reference\reference.otlp.json') -PathType Leaf) -and
+            (Test-Path -LiteralPath (Join-Path $_.FullName 'reference\registry.ctsc.json') -PathType Leaf)
+        }
+    )
+    if ($available.Count -ne 1) {
+        throw "Found $($available.Count) complete published references in $slicesDir. Provide the target Rust PR URL with -PullRequest."
+    }
+    return $available[0].Name
+}
+
 function Get-SliceInfo {
     param(
         [Parameter(Mandatory)] $Layout,
-        [Parameter(Mandatory)] [string] $Slice
+        [string] $Slice,
+        [string] $PullRequest
     )
 
+    $Slice = Get-PublishedSliceName -Layout $Layout -Slice $Slice -PullRequest $PullRequest
     $sliceDir = Join-Path $Layout.CaptureRoot "slices\$Slice"
     $binding = Join-Path $sliceDir 'specgate.yaml'
-    if (-not (Test-Path $binding)) {
-        $known = (Get-ChildItem (Join-Path $Layout.CaptureRoot 'slices') -Directory).Name -join ', '
-        throw "No binding at $binding. Known slices: $known."
+    $referenceDir = Join-Path $sliceDir 'reference'
+    $requiredFiles = @(
+        $binding,
+        (Join-Path $referenceDir 'manifest.json'),
+        (Join-Path $referenceDir 'reference.otlp.json'),
+        (Join-Path $referenceDir 'registry.ctsc.json')
+    )
+    foreach ($path in $requiredFiles) {
+        if (-not (Test-Path -LiteralPath $path -PathType Leaf)) {
+            throw "The published reference is incomplete: $path is missing. A binding and captured reference are required for replay."
+        }
     }
 
     # The slice bindings have a fixed shape: one component, with csharp and rust
@@ -98,7 +192,6 @@ function Get-SliceInfo {
     if (-not $component) { throw "No component found in $binding." }
     if (-not $projects.ContainsKey('csharp')) { throw "No csharp test project found in $binding." }
 
-    $referenceDir = Join-Path $sliceDir 'reference'
     $manifest = Get-Content (Join-Path $referenceDir 'manifest.json') -Raw | ConvertFrom-Json
 
     $framework = 'net8.0'

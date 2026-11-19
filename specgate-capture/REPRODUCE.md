@@ -31,12 +31,15 @@ the test gate. It then compares the results with the expected results below.
 1. Clone this fork branch into an empty parent folder, as in step 2.
 2. Start GitHub Copilot CLI in the `odata.net` clone. Copilot loads the skill
    from `.github/skills/`.
-3. Ask, for example: "Use the specgate-spatial-repro skill to replay slice
-   01-coordinate-system." Add "with discovery and capture" for a full run.
+3. Ask, for example: "Use the specgate-spatial-repro skill to replay
+   https://github.com/OData/odata-rs/pull/80." Add "with discovery and
+   capture" for a full run.
 
 The scripts need PowerShell 7 and the prerequisites below. You can also run
 them without Copilot. See the skill's `SKILL.md` for the commands. They write
 all results to `<parent>\specgate-out\` and do not change tracked files.
+The skill selects the published binding and reference for the PR from this
+branch. Reviewers do not need a separate workspace or a slice folder.
 
 ## Versions by slice
 
@@ -236,5 +239,6 @@ For capture details, see [README.md](README.md).
    that file.
 3. Capture with the test gate above. Save the validated bundle in
    `specgate-capture/slices/<slice>/reference/`.
-4. Add a row to each table on this page. Record the commits after the slice
-   is committed.
+4. Add a row to each table on this page. Put the canonical Rust PR URL as a
+   Markdown link in the `odata-rs commit` column. Record the commits after
+   the slice is committed.

@@ -15,13 +15,18 @@ Records a fresh C# reference for a slice and enforces the test gate.
 A fresh reference is valid only when step 4 passes. A valid bundle alone
 does not show that the tests passed.
 
+Use -PullRequest to select the published reference for an odata-rs PR. If
+there is one complete reference, it is selected when both -PullRequest and
+-Slice are omitted.
+
 Default -OutDir is <parent>\specgate-out\<slice>\capture-run. Exit code 0
 means that the gate passed and the reference is equivalent; 1 means that the
 gate passed but the reference differs; 2 means that a step or the gate failed.
 #>
 [CmdletBinding()]
 param(
-    [Parameter(Mandatory)] [string] $Slice,
+    [string] $Slice,
+    [string] $PullRequest,
     [string] $OutDir,
     [string] $SpecGateRoot,
     [string] $FeedPath,
@@ -34,7 +39,8 @@ Import-Module (Join-Path $PSScriptRoot 'SpecGateRepro.psm1') -Force
 
 $layout = Get-ReproLayout -SpecGateRoot $SpecGateRoot -FeedPath $FeedPath
 Assert-SpecGateInstalled -Layout $layout
-$sliceInfo = Get-SliceInfo -Layout $layout -Slice $Slice
+$sliceInfo = Get-SliceInfo -Layout $layout -Slice $Slice -PullRequest $PullRequest
+$Slice = $sliceInfo.Name
 Set-AnnotationsFeed -Layout $layout
 
 if (-not $OutDir) { $OutDir = Join-Path $layout.Parent "specgate-out\$Slice\capture-run" }
