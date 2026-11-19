@@ -1,0 +1,19 @@
+# Slice 1 (CoordinateSystem) binding for replay and comparison.
+# Paths are relative to this file. Clone odata-rs beside odata.net.
+components:
+  spatial.coordinate_system:
+    implementations:
+      csharp:
+        language: csharp
+        sources: ../../../src/Microsoft.Spatial
+        tests:
+          projects:
+            - ../../Microsoft.Spatial.CoordinateSystem.Capture.csproj
+        csharp:
+          framework: net8.0
+      rust:
+        language: rust
+        sources: ../../../../odata-rs/crates/odata-spatial-core
+        tests:
+          projects:
+            - ../../../../odata-rs/crates/odata-spatial-core/Cargo.toml

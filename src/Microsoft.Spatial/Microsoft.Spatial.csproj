@@ -42,7 +42,7 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="SpecGate.Annotations" Version="0.6.0" />
+    <PackageReference Include="SpecGate.Annotations" Version="0.6.0-g4a904c27" />
   </ItemGroup>
 
   <ItemGroup>

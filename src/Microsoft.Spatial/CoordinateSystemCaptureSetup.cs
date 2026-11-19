@@ -17,9 +17,11 @@ namespace Microsoft.Spatial
     {
         [SpecSetup("to_string", Spec = "spatial.coordinate_system")]
         [SpecSetup("to_wkt_id", Spec = "spatial.coordinate_system")]
-        internal static CoordinateSystem Geography([SpecInput("epsg_id")] int? epsgId)
+        internal static CoordinateSystem Create(
+            [SpecInput("epsg_id")] int? epsgId,
+            [SpecInput("is_geography")] bool isGeography)
         {
-            return CoordinateSystem.Geography(epsgId);
+            return isGeography ? CoordinateSystem.Geography(epsgId) : CoordinateSystem.Geometry(epsgId);
         }
     }
 }

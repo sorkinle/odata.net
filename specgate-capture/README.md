@@ -7,11 +7,11 @@ The bundle is the C# reference for the odata-rs spatial parity review.
 
 | Operation | Source test | Recorded result |
 | --- | --- | --- |
-| `geography`, `geometry` | Existing `CoordinateSystemTests` and the two null tests in this folder | `EpsgId`, `Id`, and `Name` |
-| `to_string` | `ToStringImplementation` | Returned string |
-| `to_wkt_id` | `ToWktImplementation` | Returned string |
+| `geography`, `geometry` | `CoordinateSystemTests` and the two null tests in this folder | `EpsgId`, `Id`, and `Name` |
+| `to_string` | `ToStringImplementation`, `InstanceFormattingUsesTopologyAndDefaults` | Returned string |
+| `to_wkt_id` | `ToWktImplementation`, `InstanceFormattingUsesTopologyAndDefaults` | Returned string |
 
-The expected result is 8 scenarios and 13 operations.
+The workspace report records the scenario and operation counts for each capture.
 
 `GetHashCode` is not a SpecGate operation. Rust has no numeric hash-code API
 to replay it against, and SpecGate replay stops at planning when a recorded
@@ -24,8 +24,9 @@ records only its `geography` call.
 - `CoordinateSystem.Geography` and `CoordinateSystem.Geometry` are SpecGate operations.
 - The instance operations need a SpecGate setup that produces the receiver.
   SpecGate rejects a method that is both an operation and a setup.
-- `CoordinateSystemCaptureSetup.Geography` is the setup. It is `internal` and
-  only calls `CoordinateSystem.Geography`. It does not change public API or behavior.
+- `CoordinateSystemCaptureSetup.Create` is the setup. It records the topology
+  and delegates to the corresponding factory. It is `internal` and does not
+  change public API or behavior.
 - The setup is in `src/Microsoft.Spatial` because SpecGate discovers and weaves
   only the project named by `sources` in `specgate.yaml`.
 - `ToStringImplementation` and `ToWktImplementation` create their receiver
@@ -33,7 +34,10 @@ records only its `geography` call.
 
 ## Run the capture
 
-Prerequisites: the .NET 8 SDK and the SpecGate 0.6.0 CLI.
+Prerequisites: the .NET 8 runtime, an SDK that builds `net8.0`, and the
+SpecGate CLI built from commit `4a904c27`, and the matching
+`SpecGate.Annotations` `0.6.0-g4a904c27` package. See
+[REPRODUCE.md](REPRODUCE.md) for setup. The workspace pilot uses SDK 10.
 
 1. Go to the repository root.
 2. Run the tests:
@@ -48,7 +52,12 @@ Prerequisites: the .NET 8 SDK and the SpecGate 0.6.0 CLI.
    specgate capture --binding specgate.yaml --component spatial.coordinate_system --impl csharp --out <bundle-dir> --force
    ```
 
-   Expected output: `Complete(component=spatial.coordinate_system, scenarios=8, operations=13, ...)`.
+   Check the reported scenario and operation counts against the capture.
+   All configured tests must pass before and during capture. A valid bundle
+   does not prove that every test passed. SpecGate removes its temporary
+   per-test `.trx` files after capture. Copy them while capture runs and check
+   every configured test result. A failed, skipped, or missing result blocks
+   acceptance.
 
 4. Validate the bundle:
 

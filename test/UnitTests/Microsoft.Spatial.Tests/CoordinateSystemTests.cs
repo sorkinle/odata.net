@@ -51,6 +51,29 @@ namespace Microsoft.Spatial.Tests
         }
 
         [Fact]
+        public void ObjectEqualityUsesCoordinateSystemValues()
+        {
+            object other = Coords(name: "different");
+            Assert.True(Coords().Equals(other));
+        }
+
+        [Fact]
+        public void ObjectEqualityRejectsOtherTypes()
+        {
+            Assert.False(Coords().Equals(new object()));
+        }
+
+        [Fact]
+        public void EqualCoordinateSystemsHaveEqualHashCodes()
+        {
+            var first = Coords(name: "first");
+            var second = Coords(name: "second");
+
+            Assert.Equal(first, second);
+            Assert.Equal(first.GetHashCode(), second.GetHashCode());
+        }
+
+        [Fact]
         public void GeometryPropertyCaches()
         {
             Assert.Same(CoordinateSystem.Geometry(1), CoordinateSystem.Geometry(1));
@@ -71,13 +94,36 @@ namespace Microsoft.Spatial.Tests
         [Fact]
         public void ToWktImplementation()
         {
-            Assert.Equal("SRID=1;", CoordinateSystemCaptureSetup.Geography(1).ToWktId());
+            Assert.Equal("SRID=1;", CoordinateSystemCaptureSetup.Create(1, true).ToWktId());
         }
 
         [Fact]
         public void ToStringImplementation()
         {
-            Assert.Equal("GeographyCoordinateSystem(EpsgId=1)", CoordinateSystemCaptureSetup.Geography(1).ToString());
+            Assert.Equal("GeographyCoordinateSystem(EpsgId=1)", CoordinateSystemCaptureSetup.Create(1, true).ToString());
+        }
+
+        [Theory]
+        [InlineData(-1)]
+        [InlineData(int.MinValue)]
+        [InlineData(int.MaxValue)]
+        public void FactoriesPreserveSignedIdentifiers(int epsgId)
+        {
+            Assert.Equal(epsgId, CoordinateSystem.Geography(epsgId).EpsgId);
+            Assert.Equal(epsgId, CoordinateSystem.Geometry(epsgId).EpsgId);
+        }
+
+        [Theory]
+        [InlineData(false, 1, "GeometryCoordinateSystem(EpsgId=1)", "SRID=1;")]
+        [InlineData(true, null, "GeographyCoordinateSystem(EpsgId=4326)", "SRID=4326;")]
+        [InlineData(false, null, "GeometryCoordinateSystem(EpsgId=0)", "SRID=0;")]
+        public void InstanceFormattingUsesTopologyAndDefaults(
+            bool isGeography, int? epsgId, string expectedText, string expectedWktId)
+        {
+            var coordinateSystem = CoordinateSystemCaptureSetup.Create(epsgId, isGeography);
+
+            Assert.Equal(expectedText, coordinateSystem.ToString());
+            Assert.Equal(expectedWktId, coordinateSystem.ToWktId());
         }
 
         [Fact]
