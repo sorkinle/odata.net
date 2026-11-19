@@ -1,0 +1,18 @@
+# Paths are relative to this file. Clone odata-rs beside odata.net.
+components:
+  spatial.positions:
+    implementations:
+      csharp:
+        language: csharp
+        sources: ../../../src/Microsoft.Spatial
+        tests:
+          projects:
+            - ../../Microsoft.Spatial.Positions.Capture.csproj
+        csharp:
+          framework: net8.0
+      rust:
+        language: rust
+        sources: ../../../../odata-rs/crates/odata-spatial-core
+        tests:
+          projects:
+            - ../../../../odata-rs/crates/odata-spatial-core/Cargo.toml
