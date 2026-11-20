@@ -51,6 +51,7 @@ the current branch heads, to reproduce an earlier slice.
 
 | Slice | Folder | odata-rs commit | odata.net fork commit | SpecGate commit |
 | --- | --- | --- | --- | --- |
+| 9 Pipelines and services | `slices\09-pipelines-and-services` | `c483cec8cf9f98302ad6f7ff095c279cb4c8f8f8` ([PR #96](https://github.com/OData/odata-rs/pull/96)) | `b11ee9c57dbf6672ad314e783fc67217ea0495c4` | `4a904c276e24177c84cf4fb7182c93e811137f9d` |
 
 Each slice's source branch adds its own row. For a new slice, write
 "Pending" until its changes are committed, then
