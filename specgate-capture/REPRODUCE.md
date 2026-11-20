@@ -51,6 +51,7 @@ the current branch heads, to reproduce an earlier slice.
 
 | Slice | Folder | odata-rs commit | odata.net fork commit | SpecGate commit |
 | --- | --- | --- | --- | --- |
+| 5: factories | `slices/05-factories` | `58876f54b452ae0fb0a8a26e3476e3e481b1c23e` ([PR #88](https://github.com/OData/odata-rs/pull/88)) | `dd209fde47012aa6fc34b49655a4740e9213f5dc` | `4a904c276e24177c84cf4fb7182c93e811137f9d` |
 
 Each slice's source branch adds its own row. For a new slice, write
 "Pending" until its changes are committed, then
@@ -216,6 +217,7 @@ with the expected result for the slice:
 
 | Slice | Expected `compare` result |
 | --- | --- |
+| 5: factories | `equivalent: false`; 25 mismatch lines: 22 `CoordinateSystem.Id`/`Name` placeholders in 11 successful completed-polygon cases and three native error messages. Replay has 14 scenarios and 14 operations; linked validation passes. Default-SRID selection is adapter behavior. No fluent factory API parity is claimed. |
 
 A new validation error or a different set of mismatches is a new finding.
 
