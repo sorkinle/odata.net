@@ -51,6 +51,7 @@ the current branch heads, to reproduce an earlier slice.
 
 | Slice | Folder | odata-rs commit | odata.net fork commit | SpecGate commit |
 | --- | --- | --- | --- | --- |
+| WKT and shared formatters | `slices/06-wkt` | [`e0a1b7f`](https://github.com/OData/odata-rs/pull/89) | `66b1ad1e467cb7f77baaedb67351903ccd0e056a` | `4a904c276e24177c84cf4fb7182c93e811137f9d` |
 
 Each slice's source branch adds its own row. For a new slice, write
 "Pending" until its changes are committed, then
@@ -216,6 +217,7 @@ with the expected result for the slice:
 
 | Slice | Expected `compare` result |
 | --- | --- |
+| WKT and shared formatters | `equivalent: false`. Seven mismatches: one `read_pipeline` event list, two `write_pipeline` strings, one `write_stream` string, one `write_text` string, and two `write_xml_extension` strings. |
 
 A new validation error or a different set of mismatches is a new finding.
 
