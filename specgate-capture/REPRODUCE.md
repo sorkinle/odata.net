@@ -63,11 +63,17 @@ capture manifests. `specgate-pin.json` records the commit and the
 `SpecGate.Annotations` version. The odata-rs test dependency must use the
 same commit; the install script checks it.
 
-## Slice 7 C# reference boundary
+## Slice 7 GeoJSON boundary
 
-The `07-geojson` reference is C#-only evidence for component
-`spatial.geojson`. No Rust replay or parity claim is available yet.
+The `07-geojson` reference records component `spatial.geojson`.
+Rust replay and linked validation pass. Strict comparison returns
+`equivalent: false` with 49 mismatch entries.
 Use explicit `-Slice 07-geojson` selection until a Rust PR row is published.
+The local Rust evidence commit is
+`28e1b36b754ce26b21fc0d8850b4787ab7711d0a`.
+The original clean C# capture ran at
+`5a0513e01280f8acdc368c8263a3f924b86c0b1c`; the later binding and guide
+changes do not change its annotations, tests, or saved reference.
 
 Direct discovery of the formatter methods failed because `Geography`,
 `ISpatial`, and `IGeoJsonWriter` had no registered component owner.
@@ -117,6 +123,45 @@ The configured .NET 8 suite contains 33 tests. Fourteen unchanged formatter
 round-trip tests remain native-only coverage. The non-finite test and the
 adapter-metadata test also have no captured operations. Thus 33 passing tests
 do not mean 33 recorded scenarios.
+
+Rust adapters are test-only code in
+`crates\odata-spatial\tests\specgate_geojson.rs`. The facade package already
+depends on the native GeoJSON codec, spatial core, and pinned SpecGate.
+No Rust product behavior or signature was changed.
+
+Rust reconstructs the recorded tree as native `Value`, then calls
+`to_geography` or `to_geometry`. Its number model is binary64 only.
+Recorded CLR `int`, `long`, `single`, and `decimal` values therefore use a
+binary64 projection. The tested numeric values are exactly representable;
+this is not evidence for native CLR numeric-type identity or untested
+decimal rounding. The `concreteLineString` input remains recorded but has
+no native effect because Rust has no matching generic formatter cast API.
+
+Materialized Rust writes use real `SpatialBuilder` values and
+`from_geography` or `from_geometry`. Raw writes drive `local_writer_pipeline`
+and record real `EventSink` calls. Injected sink failures retain the native
+`odata_spatial_core::error::SpatialError` type name and unmodified Display
+text, including its cause chain. The adapters do not fabricate CLR errors,
+normalize messages, invent coordinates, or coerce rejected shapes.
+
+Replay contains the same 17 scenarios and 169 operations. Of those
+operations, 136 have identical recorded completions. Strict comparison
+reports 49 mismatch entries across 33 operations:
+
+- Fifteen reads return a C# result but a Rust error: three geography range
+  cases, two depth-29 cases, two changed-child-CRS cases, four short/open-ring
+  cases, and four singleton LineString base/concrete cases.
+- Two explicit-null-CRS errors differ in message. C# records
+  `Object reference not set to an instance of an object.`; Rust records
+  `Cannot read the value 'null' as a JSON object.`
+- Sixteen injected sink failures differ in both `FailureType` and
+  `FailureMessage`. Their attempted callback prefixes and failure flags
+  match. Rust retains the cause chain; C# records its injected exception
+  message only.
+
+All 30 materialized writes match. The six successful raw-writer observations
+match, including M-only null Z and singleton LineString output.
+The 49 entries are observed differences, not approved exceptions.
 
 Recorded C# behavior includes the singleton LineString base/concrete result
 distinction, short and open rings, changed child CRS, coordinates outside
@@ -283,6 +328,7 @@ with the expected result for the slice:
 
 | Slice | Expected `compare` result |
 | --- | --- |
+| `07-geojson` | Exit `1`, `equivalent: false`, 49 mismatch entries: 15 read outcome kinds, two null-CRS error messages, 16 sink-failure type names, and 16 sink-failure messages. |
 
 A new validation error or a different set of mismatches is a new finding.
 
