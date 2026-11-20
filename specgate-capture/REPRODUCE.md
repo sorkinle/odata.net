@@ -51,6 +51,7 @@ the current branch heads, to reproduce an earlier slice.
 
 | Slice | Folder | odata-rs commit | odata.net fork commit | SpecGate commit |
 | --- | --- | --- | --- | --- |
+| 8 GML | `slices\08-gml` | `a0d236b8e40dc6046e5238aceb061eff02a87056` ([PR #94](https://github.com/OData/odata-rs/pull/94)) | `c59adf96afca5115ce2852d29e8d7acb1a251c46` | `4a904c276e24177c84cf4fb7182c93e811137f9d` |
 
 Each slice's source branch adds its own row. For a new slice, write
 "Pending" until its changes are committed, then
@@ -216,6 +217,7 @@ with the expected result for the slice:
 
 | Slice | Expected `compare` result |
 | --- | --- |
+| 8 GML | `equivalent: false`, exit code 1; 90 mismatch fields across 68 of 144 calls. Reader prefixes/cancellation/depth, error text, XML representation, and namespace/text callbacks differ. See [report #95](https://github.com/OData/odata-rs/issues/95). |
 
 A new validation error or a different set of mismatches is a new finding.
 
