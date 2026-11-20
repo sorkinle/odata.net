@@ -1,0 +1,39 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <AssemblyName>Microsoft.Spatial.Tests</AssemblyName>
+    <BaseOutputPath>bin\pipelines\</BaseOutputPath>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+    <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>..\tools\StrongNamePublicKeys\testkey.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
+    <PackageReference Include="SpecGate.Annotations" Version="0.6.0-g4a904c27" />
+    <PackageReference Include="xunit" Version="2.9.3" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="3.0.2">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\test\UnitTests\Microsoft.Spatial.Tests\SpatialOperationsTests.cs" Link="SpatialOperationsTests.cs" />
+    <Compile Include="..\test\UnitTests\Microsoft.Spatial.Tests\SpatialTestUtils.cs" Link="SpatialTestUtils.cs" />
+    <Compile Include="..\test\UnitTests\Microsoft.Spatial.Tests\PositionData.cs" Link="PositionData.cs" />
+    <Compile Include="..\test\UnitTests\Microsoft.Spatial.Tests\TestData.cs" Link="TestData.cs" />
+    <Compile Include="..\test\UnitTests\Microsoft.Spatial.Tests\SpatialPipelineTests.cs" Link="SpatialPipelineTests.cs" />
+    <Compile Include="..\test\UnitTests\Microsoft.Spatial.Tests\ForwardingSegmentTests.cs" Link="ForwardingSegmentTests.cs" />
+    <Compile Include="..\test\UnitTests\Microsoft.Spatial.Tests\SpatialValidatorTests.cs" Link="SpatialValidatorTests.cs" />
+    <Compile Include="..\test\UnitTests\Microsoft.Spatial.Tests\SpatialValidatorImplementationTests.cs" Link="SpatialValidatorImplementationTests.cs" />
+    <Compile Include="..\test\UnitTests\Microsoft.Spatial.Tests\SpatialImplementationTests.cs" Link="SpatialImplementationTests.cs" />
+    <Compile Include="..\test\UnitTests\Microsoft.Spatial.Tests\DataServicesSpatialImplementationTests.cs" Link="DataServicesSpatialImplementationTests.cs" />
+    <Compile Include="..\test\UnitTests\Microsoft.Spatial.Tests\GeographyBuilderImplementationTests.cs" Link="GeographyBuilderImplementationTests.cs" />
+    <Compile Include="..\test\UnitTests\Microsoft.Spatial.Tests\GeometryBuilderTests.cs" Link="GeometryBuilderTests.cs" />
+    <Compile Include="PipelinesCaptureTests.cs" />
+    <ProjectReference Include="..\src\Microsoft.Spatial\Microsoft.Spatial.csproj" />
+  </ItemGroup>
+</Project>
