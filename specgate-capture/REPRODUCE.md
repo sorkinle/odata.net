@@ -51,6 +51,7 @@ the current branch heads, to reproduce an earlier slice.
 
 | Slice | Folder | odata-rs commit | odata.net fork commit | SpecGate commit |
 | --- | --- | --- | --- | --- |
+| GeoJSON | `slices\07-geojson` | [#92](https://github.com/OData/odata-rs/pull/92), `28e1b36b754ce26b21fc0d8850b4787ab7711d0a` | `a327becd3d38f1c581a26ad44782b722bc90c2af` | `4a904c276e24177c84cf4fb7182c93e811137f9d` |
 
 Each slice's source branch adds its own row. For a new slice, write
 "Pending" until its changes are committed, then
@@ -68,8 +69,10 @@ same commit; the install script checks it.
 The `07-geojson` reference records component `spatial.geojson`.
 Rust replay and linked validation pass. Strict comparison returns
 `equivalent: false` with 49 mismatch entries.
-Use explicit `-Slice 07-geojson` selection until a Rust PR row is published.
-The local Rust evidence commit is
+Select the published reference with
+`-PullRequest https://github.com/OData/odata-rs/pull/92`.
+Explicit `-Slice 07-geojson` selection also works.
+The Rust evidence commit is
 `28e1b36b754ce26b21fc0d8850b4787ab7711d0a`.
 The original clean C# capture ran at
 `5a0513e01280f8acdc368c8263a3f924b86c0b1c`; the later binding and guide
