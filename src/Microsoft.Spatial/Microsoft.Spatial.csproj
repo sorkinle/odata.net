@@ -1,6 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
     <AssemblyName>Microsoft.Spatial</AssemblyName>
     <RootNamespace>Microsoft.Spatial</RootNamespace>
 
@@ -29,6 +30,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="SpecGate.Annotations" Version="0.6.0-g4a904c27" />
     <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="10.0.300">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
