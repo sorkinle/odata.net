@@ -1,0 +1,11 @@
+components:
+  spatial.geojson:
+    implementations:
+      csharp:
+        language: csharp
+        sources: ../../../src/Microsoft.Spatial
+        tests:
+          projects:
+            - ../../Microsoft.Spatial.GeoJson.Capture.csproj
+        csharp:
+          framework: net8.0

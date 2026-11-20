@@ -63,6 +63,73 @@ capture manifests. `specgate-pin.json` records the commit and the
 `SpecGate.Annotations` version. The odata-rs test dependency must use the
 same commit; the install script checks it.
 
+## Slice 7 C# reference boundary
+
+The `07-geojson` reference is C#-only evidence for component
+`spatial.geojson`. No Rust replay or parity claim is available yet.
+Use explicit `-Slice 07-geojson` selection until a Rust PR row is published.
+
+Direct discovery of the formatter methods failed because `Geography`,
+`ISpatial`, and `IGeoJsonWriter` had no registered component owner.
+The interface types cannot carry `SpecEvent`. The user approved the typed
+capture adapters in `src\Microsoft.Spatial\GeoJsonCaptureAdapter.cs`.
+The original formatter methods and behavior are unchanged.
+
+The four adapter operations call the real public APIs:
+
+- `read_geography` and `read_geometry` rebuild a materialized dictionary,
+  call `Read<T>`, and observe the returned value through its native `SendTo`.
+  The `concreteLineString` input selects a base or concrete LineString result
+  type. A null result has `HasValue=false` and no invented shape events.
+- `write_materialized` reconstructs a completed value from recorded spatial
+  events, calls `Write`, and records the actual materialized output tree.
+  The reconstruction is setup, not evidence that Rust can construct every
+  reference value.
+- `write_events` sends recorded spatial calls to the pipeline returned by
+  `CreateWriter`. It records the attempted callback sequence, including a
+  callback that throws. A nonzero `failAtCallback` injects one
+  `InvalidOperationException`. The adapter catches only that exception
+  instance and returns explicit failure fields with the observed prefix.
+  It does not roll back output or claim that the callback completed.
+
+Materialized inputs use parallel primitive arrays: `Parents`, `Names`,
+`Kinds`, `Numbers`, `Integers`, and `Texts`. A root has parent `-1`.
+Children follow their parent. Objects retain member names; arrays retain
+element order. Kinds distinguish objects, arrays, null, strings, booleans,
+`int`, `long`, `single`, `double`, and `decimal`. Decimal text is an invariant
+representation of the actual decimal value, not JSON text. The adapter does
+not parse JSON or select fixtures by name.
+
+Spatial inputs retain topology and ordered calls, CRS, shape kinds, primary
+coordinates, Z, and M. Output records are adapter observations of native
+values and events. They are not native formatter, writer-interface, or
+pipeline identity APIs. Materialized node traversal preserves the observed
+dictionary enumeration order; JSON callback order is a separate observation.
+Do not treat an object-member ordering difference alone as changed geometry.
+
+The first gated reference contains 17 scenarios and 169 operations:
+60 geography reads, 57 geometry reads, 30 materialized writes, and 22 event
+writes. There are 133 result completions and 36 error completions.
+`SpecException` retains the unmodified error message, not exception type
+or inner metadata. Native tests check those types separately.
+
+The configured .NET 8 suite contains 33 tests. Fourteen unchanged formatter
+round-trip tests remain native-only coverage. The non-finite test and the
+adapter-metadata test also have no captured operations. Thus 33 passing tests
+do not mean 33 recorded scenarios.
+
+Recorded C# behavior includes the singleton LineString base/concrete result
+distinction, short and open rings, changed child CRS, coordinates outside
+validator ranges, and spatial depth 29. Explicit null CRS throws
+`NullReferenceException`. These observations are not accepted Rust
+differences. Non-finite ordinates remain native-only because the pinned
+trace writer encodes non-finite f64 as JSON null.
+
+FullGlobe writer rejection, arbitrary formatter subclassing, interface
+identity, cross-topology interleaving, and reset/reuse after a sink failure
+are not recorded. Do not infer direct native API equivalence from this
+adapter reference.
+
 ## Prerequisites
 
 - Git.

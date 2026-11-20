@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <AssemblyName>Microsoft.Spatial.Tests</AssemblyName>
+    <BaseOutputPath>bin\geojson\</BaseOutputPath>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+    <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>..\tools\StrongNamePublicKeys\testkey.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
+    <PackageReference Include="SpecGate.Annotations" Version="0.6.0-g4a904c27" />
+    <PackageReference Include="xunit" Version="2.9.3" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="3.0.2">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\test\UnitTests\Microsoft.Spatial.Tests\ScenarioTests\SpatialFormatterRoundTripTests.cs" Link="SpatialFormatterRoundTripTests.cs" />
+    <Compile Include="GeoJsonCaptureTests.cs" />
+    <ProjectReference Include="..\src\Microsoft.Spatial\Microsoft.Spatial.csproj" />
+  </ItemGroup>
+</Project>
